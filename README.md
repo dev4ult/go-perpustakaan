@@ -1,6 +1,6 @@
 # Sistem Informasi Peminjaman Buku Perpustakaan
 
-ERD Sementara
+### ERD Sementara
 ![image](https://raw.githubusercontent.com/dev4ult/go-perpustakaan/main/Perpustakaan.jpg)
 
 ### Link ERD
