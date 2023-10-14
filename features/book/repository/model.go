@@ -11,6 +11,12 @@ type model struct {
 	db *gorm.DB
 }
 
+func New(db *gorm.DB) book.Repository {
+	return &model {
+		db: db,
+	}
+}
+
 func (mdl *model) Paginate(page, size int) []book.Book {
 	var books []book.Book
 	result := mdl.db.Limit(10).Find(&books)
@@ -69,6 +75,7 @@ func (mdl *model) DeleteByID(bookID int) int64 {
 	
 	if result.Error != nil {
 		log.Error(result.Error)
+		return 0
 	}
 
 	return result.RowsAffected

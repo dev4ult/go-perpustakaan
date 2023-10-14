@@ -12,15 +12,28 @@ type service struct {
 	model book.Repository
 }
 
-func (svc *service) GetAll(page, size int) []dtos.ResBook {
-	if page < 1 || size < 1 {
-		return nil
+func New(model book.Repository) book.Usecase {
+	return &service {
+		model: model,
 	}
-	
-	return nil
 }
 
-func (svc *service) GetDetail(bookID int) *dtos.ResBook {
+func (svc *service) FindAll(page, size int) []dtos.ResBook {
+	var books []dtos.ResBook
+
+	booksEnt := svc.model.Paginate(page, size)
+
+	err := smapping.FillStruct(&books, smapping.MapFields(booksEnt))
+
+	if err != nil {
+		log.Error(err)
+		return nil
+	}
+
+	return books
+}
+
+func (svc *service) FindByID(bookID int) *dtos.ResBook {
 	res := dtos.ResBook{}
 	book := svc.model.SelectByID(bookID)
 
@@ -79,6 +92,13 @@ func (svc *service) Modify(bookData dtos.InputBook, bookID int) bool {
 	return true
 }
 
-func (svc *service) Remove(bookId int) bool {
+func (svc *service) Remove(bookID int) bool {
+	rowsAffected := svc.model.DeleteByID(bookID)
+
+	if rowsAffected <= 0 {
+		log.Error("There is No Books Updated!")
+		return false
+	}
+
 	return true
 }
