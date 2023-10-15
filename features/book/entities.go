@@ -20,11 +20,9 @@ type Book struct {
 	
 	CategoryID int `gorm:"type:int(11)"`
 	PublisherID int `gorm:"type:int(11)"`
-	FineTypeID int `gorm:"type:int(11)"`
 	
 	Category Category
 	Publisher publisher.Publisher
-	FineType FineType
 
 	Authors []author.Authorship
 }

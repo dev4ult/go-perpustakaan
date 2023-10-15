@@ -11,4 +11,5 @@ func Books(e *echo.Echo, handler book.Handler) {
 
 	books.GET("", handler.GetBooks())
 	books.GET("/:id", handler.BookDetails())
+	books.POST("", handler.CreateBook())
 }
