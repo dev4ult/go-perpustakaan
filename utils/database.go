@@ -4,7 +4,7 @@ import (
 	"perpustakaan/config"
 	"perpustakaan/features/author"
 	"perpustakaan/features/book"
-	"perpustakaan/features/loan"
+	"perpustakaan/features/loanHistory"
 	"perpustakaan/features/publisher"
 
 	"fmt"
@@ -31,5 +31,5 @@ func InitDB() *gorm.DB {
 func migrate(db *gorm.DB) {
 	db.AutoMigrate(publisher.Publisher{}, author.Author{})
 	db.AutoMigrate(book.Category{}, book.Book{})
-	db.AutoMigrate(loan.LoanHistory{}, author.Authorship{})
+	db.AutoMigrate(loanHistory.LoanHistory{}, author.Authorship{})
 }

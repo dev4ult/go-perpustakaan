@@ -5,18 +5,18 @@ import (
 	helper "perpustakaan/helpers"
 	"strconv"
 
-	"perpustakaan/features/book"
-	"perpustakaan/features/book/dtos"
+	"perpustakaan/features/loanHistory"
+	"perpustakaan/features/loanHistory/dtos"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 )
 
 type controller struct {
-	service book.Usecase
+	service loanHistory.Usecase
 }
 
-func New(service book.Usecase) book.Handler {
+func New(service loanHistory.Usecase) loanHistory.Handler {
 	return &controller {
 		service: service,
 	}
@@ -24,7 +24,7 @@ func New(service book.Usecase) book.Handler {
 
 var validate *validator.Validate
 
-func (ctl *controller) GetBooks() echo.HandlerFunc {
+func (ctl *controller) GetLoanHistorys() echo.HandlerFunc {
 	return func (ctx echo.Context) error  {
 		pagination := dtos.Pagination{}
 		ctx.Bind(&pagination)
@@ -32,48 +32,46 @@ func (ctl *controller) GetBooks() echo.HandlerFunc {
 		page := pagination.Page
 		size := pagination.Size
 
-		// fmt.Printf("page: %d, %T | size: %d, %T \n", pagination.Page, pagination.Page, pagination.Size, pagination.Size)
-
 		if page <= 0 || size <= 0 {
 			return ctx.JSON(400, helper.Response("Please provide query `page` and `size` in number!"))
 		}
 
-		books := ctl.service.FindAll(page, size)
+		loanHistorys := ctl.service.FindAll(page, size)
 
-		if books == nil {
-			return ctx.JSON(404, helper.Response("There is No Books!"))
+		if loanHistorys == nil {
+			return ctx.JSON(404, helper.Response("There is No LoanHistorys!"))
 		}
 
 		return ctx.JSON(200, helper.Response("Success!", map[string]any {
-			"data": books,
+			"data": loanHistorys,
 		}))
 	}
 }
 
 
-func (ctl *controller) BookDetails() echo.HandlerFunc {
+func (ctl *controller) LoanHistoryDetails() echo.HandlerFunc {
 	return func (ctx echo.Context) error  {
-		bookID, err := strconv.Atoi(ctx.Param("id"))
+		loanHistoryID, err := strconv.Atoi(ctx.Param("id"))
 
 		if err != nil {
 			return ctx.JSON(400, helper.Response(err.Error()))
 		}
 
-		book := ctl.service.FindByID(bookID)
+		loanHistory := ctl.service.FindByID(loanHistoryID)
 
-		if book == nil {
-			return ctx.JSON(404, helper.Response("Book Not Found!"))
+		if loanHistory == nil {
+			return ctx.JSON(404, helper.Response("LoanHistory Not Found!"))
 		}
 
 		return ctx.JSON(200, helper.Response("Success!", map[string]any {
-			"data": book,
+			"data": loanHistory,
 		}))
 	}
 }
 
-func (ctl *controller) CreateBook() echo.HandlerFunc {
+func (ctl *controller) CreateLoanHistory() echo.HandlerFunc {
 	return func (ctx echo.Context) error  {
-		input := dtos.InputBook{}
+		input := dtos.InputLoanHistory{}
 
 		ctx.Bind(&input)
 
@@ -88,32 +86,32 @@ func (ctl *controller) CreateBook() echo.HandlerFunc {
 			}))
 		}
 
-		book := ctl.service.Create(input)
+		loanHistory := ctl.service.Create(input)
 
-		if book == nil {
+		if loanHistory == nil {
 			return ctx.JSON(500, helper.Response("Something went Wrong!", nil))
 		}
 
 		return ctx.JSON(200, helper.Response("Success!", map[string]any {
-			"data": book,
+			"data": loanHistory,
 		}))
 	}
 }
 
-func (ctl *controller) UpdateBook() echo.HandlerFunc {
+func (ctl *controller) UpdateLoanHistory() echo.HandlerFunc {
 	return func (ctx echo.Context) error {
-		input := dtos.InputBook{}
+		input := dtos.InputLoanHistory{}
 
-		bookID, errParam := strconv.Atoi(ctx.Param("id"))
+		loanHistoryID, errParam := strconv.Atoi(ctx.Param("id"))
 
 		if errParam != nil {
 			return ctx.JSON(400, helper.Response(errParam.Error()))
 		}
 
-		book := ctl.service.FindByID(bookID)
+		loanHistory := ctl.service.FindByID(loanHistoryID)
 
-		if book == nil {
-			return ctx.JSON(404, helper.Response("Book Not Found!"))
+		if loanHistory == nil {
+			return ctx.JSON(404, helper.Response("LoanHistory Not Found!"))
 		}
 		
 		ctx.Bind(&input)
@@ -128,36 +126,36 @@ func (ctl *controller) UpdateBook() echo.HandlerFunc {
 			}))
 		}
 
-		update := ctl.service.Modify(input, bookID)
+		update := ctl.service.Modify(input, loanHistoryID)
 
 		if !update {
 			return ctx.JSON(500, helper.Response("Something Went Wrong!"))
 		}
 
-		return ctx.JSON(200, helper.Response("Book Success Updated!"))
+		return ctx.JSON(200, helper.Response("LoanHistory Success Updated!"))
 	}
 }
 
-func (ctl *controller) DeleteBook() echo.HandlerFunc {
+func (ctl *controller) DeleteLoanHistory() echo.HandlerFunc {
 	return func (ctx echo.Context) error  {
-		bookID, err := strconv.Atoi(ctx.Param("id"))
+		loanHistoryID, err := strconv.Atoi(ctx.Param("id"))
 
 		if err != nil {
 			return ctx.JSON(400, helper.Response(err.Error()))
 		}
 
-		book := ctl.service.FindByID(bookID)
+		loanHistory := ctl.service.FindByID(loanHistoryID)
 
-		if book == nil {
-			return ctx.JSON(404, helper.Response("Book Not Found!"))
+		if loanHistory == nil {
+			return ctx.JSON(404, helper.Response("LoanHistory Not Found!"))
 		}
 
-		delete := ctl.service.Remove(bookID)
+		delete := ctl.service.Remove(loanHistoryID)
 
 		if !delete {
 			return ctx.JSON(500, helper.Response("Something Went Wrong!"))
 		}
 
-		return ctx.JSON(200, helper.Response("Book Success Deleted!", nil))
+		return ctx.JSON(200, helper.Response("LoanHistory Success Deleted!", nil))
 	}
 }

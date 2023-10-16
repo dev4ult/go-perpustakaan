@@ -1,18 +1,21 @@
 #!/bin/bash
 
-if [[ $# < 1 ]]; then
-    echo "argument must not be less than 1"
-    exit
+if [[ $# != 1 ]]; then
+    echo "argument can not be less or more than 1"
+    exit 400
 fi
 
-FEATURE="${1,,}"
+FEATURE="${1,}"
 mkdir $FEATURE
 cd $FEATURE
 
-printf "package $FEATURE\n\nimport \"gorm.io/gorm\"\n\ntype ${FEATURE^} struct {\n\tgorm.Model\n\n\tID int\n}" > entities.go
-
-printf "package $FEATURE\n\nimport (\n\t\"github.com/labstack/echo/v4\"\n\n\t)"  > interfaces.go
-
 mkdir dtos handler mocks repository usecase
 
+FILES=("interfaces.go" "entities.go" "dtos/request.go" "dtos/response.go" "handler/controller.go" "usecase/service.go" "repository/model.go")
+
+for FILE in "${FILES[@]}"; do
+    sed -e "s/placeholder/${FEATURE}/g" -e"s/Placeholder/${FEATURE^}/g" ../_blueprint/$FILE > $FILE
+done
+
+sed -e "s/placeholder/${FEATURE}/g" -e"s/Placeholder/${FEATURE^}/g" ../_blueprint/routes.go > "../../routes/${FEATURE}s.go"
 

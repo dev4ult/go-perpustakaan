@@ -23,11 +23,14 @@ func (svc *service) FindAll(page, size int) []dtos.ResBook {
 
 	booksEnt := svc.model.Paginate(page, size)
 
-	err := smapping.FillStruct(&books, smapping.MapFields(booksEnt))
+	for _, book := range booksEnt {
+		var data dtos.ResBook
 
-	if err != nil {
-		log.Error(err)
-		return nil
+		if err := smapping.FillStruct(&data, smapping.MapFields(book)); err != nil {
+			log.Error(err.Error())
+		} 
+		
+		books = append(books, data)
 	}
 
 	return books
@@ -36,6 +39,10 @@ func (svc *service) FindAll(page, size int) []dtos.ResBook {
 func (svc *service) FindByID(bookID int) *dtos.ResBook {
 	res := dtos.ResBook{}
 	book := svc.model.SelectByID(bookID)
+
+	if book == nil {
+		return nil
+	}
 
 	err := smapping.FillStruct(&res, smapping.MapFields(book))
 	if err != nil {
@@ -81,11 +88,10 @@ func (svc *service) Modify(bookData dtos.InputBook, bookID int) bool {
 	}
 
 	newBook.ID = bookID
-
 	rowsAffected := svc.model.Update(newBook)
 
 	if rowsAffected <= 0 {
-		log.Error("There is No Books Updated!")
+		log.Error("There is No Book Updated!")
 		return false
 	}
 	
@@ -96,7 +102,7 @@ func (svc *service) Remove(bookID int) bool {
 	rowsAffected := svc.model.DeleteByID(bookID)
 
 	if rowsAffected <= 0 {
-		log.Error("There is No Books Updated!")
+		log.Error("There is No Book Deleted!")
 		return false
 	}
 

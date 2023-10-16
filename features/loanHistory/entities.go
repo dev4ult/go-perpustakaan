@@ -1,4 +1,4 @@
-package loan
+package loanHistory
 
 import (
 	"perpustakaan/features/book"

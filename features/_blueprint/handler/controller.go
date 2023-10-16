@@ -5,18 +5,18 @@ import (
 	helper "perpustakaan/helpers"
 	"strconv"
 
-	"perpustakaan/features/book"
-	"perpustakaan/features/book/dtos"
+	"perpustakaan/features/placeholder"
+	"perpustakaan/features/placeholder/dtos"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 )
 
 type controller struct {
-	service book.Usecase
+	service placeholder.Usecase
 }
 
-func New(service book.Usecase) book.Handler {
+func New(service placeholder.Usecase) placeholder.Handler {
 	return &controller {
 		service: service,
 	}
@@ -24,7 +24,7 @@ func New(service book.Usecase) book.Handler {
 
 var validate *validator.Validate
 
-func (ctl *controller) GetBooks() echo.HandlerFunc {
+func (ctl *controller) GetPlaceholders() echo.HandlerFunc {
 	return func (ctx echo.Context) error  {
 		pagination := dtos.Pagination{}
 		ctx.Bind(&pagination)
@@ -32,48 +32,46 @@ func (ctl *controller) GetBooks() echo.HandlerFunc {
 		page := pagination.Page
 		size := pagination.Size
 
-		// fmt.Printf("page: %d, %T | size: %d, %T \n", pagination.Page, pagination.Page, pagination.Size, pagination.Size)
-
 		if page <= 0 || size <= 0 {
 			return ctx.JSON(400, helper.Response("Please provide query `page` and `size` in number!"))
 		}
 
-		books := ctl.service.FindAll(page, size)
+		placeholders := ctl.service.FindAll(page, size)
 
-		if books == nil {
-			return ctx.JSON(404, helper.Response("There is No Books!"))
+		if placeholders == nil {
+			return ctx.JSON(404, helper.Response("There is No Placeholders!"))
 		}
 
 		return ctx.JSON(200, helper.Response("Success!", map[string]any {
-			"data": books,
+			"data": placeholders,
 		}))
 	}
 }
 
 
-func (ctl *controller) BookDetails() echo.HandlerFunc {
+func (ctl *controller) PlaceholderDetails() echo.HandlerFunc {
 	return func (ctx echo.Context) error  {
-		bookID, err := strconv.Atoi(ctx.Param("id"))
+		placeholderID, err := strconv.Atoi(ctx.Param("id"))
 
 		if err != nil {
 			return ctx.JSON(400, helper.Response(err.Error()))
 		}
 
-		book := ctl.service.FindByID(bookID)
+		placeholder := ctl.service.FindByID(placeholderID)
 
-		if book == nil {
-			return ctx.JSON(404, helper.Response("Book Not Found!"))
+		if placeholder == nil {
+			return ctx.JSON(404, helper.Response("Placeholder Not Found!"))
 		}
 
 		return ctx.JSON(200, helper.Response("Success!", map[string]any {
-			"data": book,
+			"data": placeholder,
 		}))
 	}
 }
 
-func (ctl *controller) CreateBook() echo.HandlerFunc {
+func (ctl *controller) CreatePlaceholder() echo.HandlerFunc {
 	return func (ctx echo.Context) error  {
-		input := dtos.InputBook{}
+		input := dtos.InputPlaceholder{}
 
 		ctx.Bind(&input)
 
@@ -88,32 +86,32 @@ func (ctl *controller) CreateBook() echo.HandlerFunc {
 			}))
 		}
 
-		book := ctl.service.Create(input)
+		placeholder := ctl.service.Create(input)
 
-		if book == nil {
+		if placeholder == nil {
 			return ctx.JSON(500, helper.Response("Something went Wrong!", nil))
 		}
 
 		return ctx.JSON(200, helper.Response("Success!", map[string]any {
-			"data": book,
+			"data": placeholder,
 		}))
 	}
 }
 
-func (ctl *controller) UpdateBook() echo.HandlerFunc {
+func (ctl *controller) UpdatePlaceholder() echo.HandlerFunc {
 	return func (ctx echo.Context) error {
-		input := dtos.InputBook{}
+		input := dtos.InputPlaceholder{}
 
-		bookID, errParam := strconv.Atoi(ctx.Param("id"))
+		placeholderID, errParam := strconv.Atoi(ctx.Param("id"))
 
 		if errParam != nil {
 			return ctx.JSON(400, helper.Response(errParam.Error()))
 		}
 
-		book := ctl.service.FindByID(bookID)
+		placeholder := ctl.service.FindByID(placeholderID)
 
-		if book == nil {
-			return ctx.JSON(404, helper.Response("Book Not Found!"))
+		if placeholder == nil {
+			return ctx.JSON(404, helper.Response("Placeholder Not Found!"))
 		}
 		
 		ctx.Bind(&input)
@@ -128,36 +126,36 @@ func (ctl *controller) UpdateBook() echo.HandlerFunc {
 			}))
 		}
 
-		update := ctl.service.Modify(input, bookID)
+		update := ctl.service.Modify(input, placeholderID)
 
 		if !update {
 			return ctx.JSON(500, helper.Response("Something Went Wrong!"))
 		}
 
-		return ctx.JSON(200, helper.Response("Book Success Updated!"))
+		return ctx.JSON(200, helper.Response("Placeholder Success Updated!"))
 	}
 }
 
-func (ctl *controller) DeleteBook() echo.HandlerFunc {
+func (ctl *controller) DeletePlaceholder() echo.HandlerFunc {
 	return func (ctx echo.Context) error  {
-		bookID, err := strconv.Atoi(ctx.Param("id"))
+		placeholderID, err := strconv.Atoi(ctx.Param("id"))
 
 		if err != nil {
 			return ctx.JSON(400, helper.Response(err.Error()))
 		}
 
-		book := ctl.service.FindByID(bookID)
+		placeholder := ctl.service.FindByID(placeholderID)
 
-		if book == nil {
-			return ctx.JSON(404, helper.Response("Book Not Found!"))
+		if placeholder == nil {
+			return ctx.JSON(404, helper.Response("Placeholder Not Found!"))
 		}
 
-		delete := ctl.service.Remove(bookID)
+		delete := ctl.service.Remove(placeholderID)
 
 		if !delete {
 			return ctx.JSON(500, helper.Response("Something Went Wrong!"))
 		}
 
-		return ctx.JSON(200, helper.Response("Book Success Deleted!", nil))
+		return ctx.JSON(200, helper.Response("Placeholder Success Deleted!", nil))
 	}
 }
