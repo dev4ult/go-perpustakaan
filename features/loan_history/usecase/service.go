@@ -1,18 +1,18 @@
 package usecase
 
 import (
-	"perpustakaan/features/loanHistory"
-	"perpustakaan/features/loanHistory/dtos"
+	"perpustakaan/features/loan_history"
+	"perpustakaan/features/loan_history/dtos"
 
 	"github.com/labstack/gommon/log"
 	"github.com/mashingan/smapping"
 )
 
 type service struct {
-	model loanHistory.Repository
+	model loan_history.Repository
 }
 
-func New(model loanHistory.Repository) loanHistory.Usecase {
+func New(model loan_history.Repository) loan_history.Usecase {
 	return &service {
 		model: model,
 	}
@@ -54,7 +54,7 @@ func (svc *service) FindByID(loanHistoryID int) *dtos.ResLoanHistory {
 }
 
 func (svc *service) Create(newLoanHistory dtos.InputLoanHistory) *dtos.ResLoanHistory {
-	loanHistory := loanHistory.LoanHistory{}
+	loanHistory := loan_history.LoanHistory{}
 	
 	err := smapping.FillStruct(&loanHistory, smapping.MapFields(newLoanHistory))
 	if err != nil {
@@ -79,7 +79,7 @@ func (svc *service) Create(newLoanHistory dtos.InputLoanHistory) *dtos.ResLoanHi
 }
 
 func (svc *service) Modify(loanHistoryData dtos.InputLoanHistory, loanHistoryID int) bool {
-	newLoanHistory := loanHistory.LoanHistory{}
+	newLoanHistory := loan_history.LoanHistory{}
 
 	err := smapping.FillStruct(&newLoanHistory, smapping.MapFields(loanHistoryData))
 	if err != nil {

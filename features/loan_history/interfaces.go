@@ -1,7 +1,7 @@
-package loanHistory
+package loan_history
 
 import (
-	"perpustakaan/features/loanHistory/dtos"
+	"perpustakaan/features/loan_history/dtos"
 
 	"github.com/labstack/echo/v4"
 )

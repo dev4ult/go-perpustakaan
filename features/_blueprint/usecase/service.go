@@ -1,18 +1,18 @@
 package usecase
 
 import (
-	"perpustakaan/features/placeholder"
-	"perpustakaan/features/placeholder/dtos"
+	"perpustakaan/features/_blueprint"
+	"perpustakaan/features/_blueprint/dtos"
 
 	"github.com/labstack/gommon/log"
 	"github.com/mashingan/smapping"
 )
 
 type service struct {
-	model placeholder.Repository
+	model _blueprint.Repository
 }
 
-func New(model placeholder.Repository) placeholder.Usecase {
+func New(model _blueprint.Repository) _blueprint.Usecase {
 	return &service {
 		model: model,
 	}
@@ -54,7 +54,7 @@ func (svc *service) FindByID(placeholderID int) *dtos.ResPlaceholder {
 }
 
 func (svc *service) Create(newPlaceholder dtos.InputPlaceholder) *dtos.ResPlaceholder {
-	placeholder := placeholder.Placeholder{}
+	placeholder := _blueprint.Placeholder{}
 	
 	err := smapping.FillStruct(&placeholder, smapping.MapFields(newPlaceholder))
 	if err != nil {
@@ -79,7 +79,7 @@ func (svc *service) Create(newPlaceholder dtos.InputPlaceholder) *dtos.ResPlaceh
 }
 
 func (svc *service) Modify(placeholderData dtos.InputPlaceholder, placeholderID int) bool {
-	newPlaceholder := placeholder.Placeholder{}
+	newPlaceholder := _blueprint.Placeholder{}
 
 	err := smapping.FillStruct(&newPlaceholder, smapping.MapFields(placeholderData))
 	if err != nil {

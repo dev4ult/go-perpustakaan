@@ -1,4 +1,4 @@
-package placeholder
+package _blueprint
 
 import (
 	"gorm.io/gorm"

@@ -1,7 +1,7 @@
-package placeholder
+package _blueprint
 
 import (
-	"perpustakaan/features/placeholder/dtos"
+	"perpustakaan/features/_blueprint/dtos"
 
 	"github.com/labstack/echo/v4"
 )

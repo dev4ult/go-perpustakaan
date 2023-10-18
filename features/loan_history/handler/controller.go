@@ -5,18 +5,18 @@ import (
 	helper "perpustakaan/helpers"
 	"strconv"
 
-	"perpustakaan/features/loanHistory"
-	"perpustakaan/features/loanHistory/dtos"
+	"perpustakaan/features/loan_history"
+	"perpustakaan/features/loan_history/dtos"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 )
 
 type controller struct {
-	service loanHistory.Usecase
+	service loan_history.Usecase
 }
 
-func New(service loanHistory.Usecase) loanHistory.Handler {
+func New(service loan_history.Usecase) loan_history.Handler {
 	return &controller {
 		service: service,
 	}

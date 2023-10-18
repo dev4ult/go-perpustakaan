@@ -1,12 +1,12 @@
 package routes
 
 import (
-	"perpustakaan/features/placeholder"
+	"perpustakaan/features/_blueprint"
 
 	"github.com/labstack/echo/v4"
 )
 
-func Placeholders(e *echo.Echo, handler placeholder.Handler) {
+func Placeholders(e *echo.Echo, handler _blueprint.Handler) {
 	placeholders := e.Group("/placeholders")
 
 	placeholders.GET("", handler.GetPlaceholders())

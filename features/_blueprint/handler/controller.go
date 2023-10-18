@@ -5,18 +5,18 @@ import (
 	helper "perpustakaan/helpers"
 	"strconv"
 
-	"perpustakaan/features/placeholder"
-	"perpustakaan/features/placeholder/dtos"
+	"perpustakaan/features/_blueprint"
+	"perpustakaan/features/_blueprint/dtos"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 )
 
 type controller struct {
-	service placeholder.Usecase
+	service _blueprint.Usecase
 }
 
-func New(service placeholder.Usecase) placeholder.Handler {
+func New(service _blueprint.Usecase) _blueprint.Handler {
 	return &controller {
 		service: service,
 	}
