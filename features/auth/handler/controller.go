@@ -49,6 +49,10 @@ func (ctl *controller) Login() echo.HandlerFunc {
 		}
 
 		authorization := ctl.service.CheckAuthorization(input.CredentialNumber, input.Password, isStaff)
+
+		if authorization == nil {
+			return ctx.JSON(404, helper.Response("Your credential or password does not Match!"))
+		}
 		
 		return ctx.JSON(200, helper.Response("Success Login!", map[string]any {
 			"data": authorization,

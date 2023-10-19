@@ -42,7 +42,7 @@ func (svc *service) CheckAuthorization(credential string, password string, isSta
 		return nil
 	}
 	
-	if matchPassword := helpers.CompareHash(password, userTemp.Password); matchPassword {
+	if matchPassword := helpers.VerifyHash(password, userTemp.Password); matchPassword {
 		token := utils.GenerateToken(userTemp.ID)
 		response := dtos.ResAuthorization{
 			FullName: userTemp.FullName,

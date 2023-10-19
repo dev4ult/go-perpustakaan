@@ -54,7 +54,7 @@ func (ctl *controller) PlaceholderDetails() echo.HandlerFunc {
 		placeholderID, err := strconv.Atoi(ctx.Param("id"))
 
 		if err != nil {
-			return ctx.JSON(400, helper.Response(err.Error()))
+			return ctx.JSON(400, helper.Response("Please provide query `page` and `size` in number!"))
 		}
 
 		placeholder := ctl.service.FindByID(placeholderID)
@@ -81,7 +81,7 @@ func (ctl *controller) CreatePlaceholder() echo.HandlerFunc {
 
 		if err != nil {
 			errMap := helpers.ErrorMapValidation(err)
-			return ctx.JSON(400, helper.Response("Bad Request!", map[string]any {
+			return ctx.JSON(400, helper.Response("Missing Data Required!", map[string]any {
 				"error": errMap,
 			}))
 		}
@@ -121,7 +121,7 @@ func (ctl *controller) UpdatePlaceholder() echo.HandlerFunc {
 
 		if err != nil {
 			errMap := helpers.ErrorMapValidation(err)
-			return ctx.JSON(400, helper.Response("Bad Request!", map[string]any {
+			return ctx.JSON(400, helper.Response("Missing Data Required!", map[string]any {
 				"error": errMap,
 			}))
 		}
@@ -141,7 +141,7 @@ func (ctl *controller) DeletePlaceholder() echo.HandlerFunc {
 		placeholderID, err := strconv.Atoi(ctx.Param("id"))
 
 		if err != nil {
-			return ctx.JSON(400, helper.Response(err.Error()))
+			return ctx.JSON(400, helper.Response("Please provide query `page` and `size` in number!"))
 		}
 
 		placeholder := ctl.service.FindByID(placeholderID)

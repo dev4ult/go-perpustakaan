@@ -3,6 +3,7 @@ package usecase
 import (
 	"perpustakaan/features/member"
 	"perpustakaan/features/member/dtos"
+	"perpustakaan/helpers"
 
 	"github.com/labstack/gommon/log"
 	"github.com/mashingan/smapping"
@@ -61,6 +62,13 @@ func (svc *service) Create(newMember dtos.InputMember) *dtos.ResMember {
 		log.Error(err)
 		return nil
 	}
+
+	hashPassword := helpers.GenerateHash(member.Password)
+	if hashPassword == "" {
+		log.Error("Error when Hashing Password")
+		return nil
+	}
+	member.Password = hashPassword
 
 	memberID := svc.model.Insert(member)
 
