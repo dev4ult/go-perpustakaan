@@ -13,7 +13,7 @@ type Repository interface {
 }
 
 type Usecase interface {
-	CheckAuthorization(credential string, password string, isStaff bool) *dtos.ResLogin
+	CheckAuthorization(credential string, password string, isStaff bool) *dtos.ResAuthorization
 }
 
 type Handler interface {

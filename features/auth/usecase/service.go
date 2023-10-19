@@ -4,6 +4,10 @@ import (
 	"perpustakaan/features/auth"
 	"perpustakaan/features/auth/dtos"
 	"perpustakaan/helpers"
+	"perpustakaan/utils"
+
+	"github.com/labstack/gommon/log"
+	"github.com/mashingan/smapping"
 )
 
 type service struct {
@@ -16,21 +20,40 @@ func New(model auth.Repository) auth.Usecase {
 	}
 }
 
-func (svc *service) CheckAuthorization(credential string, password string, isStaff bool) *dtos.ResLogin {
-	var response dtos.ResLogin
-
+func (svc *service) CheckAuthorization(credential string, password string, isStaff bool) *dtos.ResAuthorization {
+	var userTemp dtos.User
+	var err error
 
 	if isStaff {
-		user = svc.model.SelectLibrarianByStaffID(credential)
+		user := svc.model.SelectLibrarianByStaffID(credential)
+		err = smapping.FillStruct(&userTemp, smapping.MapFields(user))
 	} else {
-		user = svc.model.SelectMemberByCredentialNumber(credential)
+		user := svc.model.SelectMemberByCredentialNumber(credential)
+		err = smapping.FillStruct(&userTemp, smapping.MapFields(user))
 	}
 
-	if user != nil && matchPassword := helpers.CompareHash(password, user.Password) ; matchPassword {
-			
+	if err != nil {
+		log.Error(err.Error())
+		return nil
 	}
 
+	if userTemp == (dtos.User{}) {
+		log.Error("User Not Found!")
+		return nil
+	}
+	
+	if matchPassword := helpers.CompareHash(password, userTemp.Password); matchPassword {
+		token := utils.GenerateToken(userTemp.ID)
+		response := dtos.ResAuthorization{
+			FullName: userTemp.FullName,
+			AccessToken: token.AccessToken,
+			RefreshToken: token.RefreshToken,
+		}
 
+		return &response
+	}
+
+	log.Error("Password Does Not Match!")
 	return nil
 }
 

@@ -4,6 +4,7 @@ import (
 	helper "perpustakaan/helpers"
 
 	"perpustakaan/features/auth"
+	"perpustakaan/features/auth/dtos"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
@@ -23,8 +24,35 @@ var validate *validator.Validate
 
 func (ctl *controller) Login() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
+		var input dtos.InputLogin
+
+		ctx.Bind(&input)
+
+		validate = validator.New(validator.WithRequiredStructEnabled())
+		err := validate.Struct(input)
+
+		if err != nil {
+			errMap := helper.ErrorMapValidation(err)
+			return ctx.JSON(400, helper.Response("Login Credential Can Not be Empty!", map[string]any {
+				"error": errMap,
+			}))
+		}
+
+		if (input.StaffID != "" && input.CredentialNumber != "") || (input.StaffID == "" && input.CredentialNumber == "") {
+			return ctx.JSON(400, helper.Response("Choose between `credential-number` and `staff-id` for Login. Do not send both!"))
+		}
+
+		isStaff := false
+
+		if input.StaffID != "" {
+			isStaff = true
+		}
+
+		authorization := ctl.service.CheckAuthorization(input.CredentialNumber, input.Password, isStaff)
 		
-		return ctx.JSON(200, helper.Response("Success Login!"))
+		return ctx.JSON(200, helper.Response("Success Login!", map[string]any {
+			"data": authorization,
+		}))
 	}
 }
 

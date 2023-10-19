@@ -16,7 +16,9 @@ type DatabaseConfig struct {
 }
 
 type ServerConfig struct {
-	SERVER_PORT string
+	SERVER_PORT int
+	SIGN_KEY string
+	REFRESH_KEY string
 }
 
 func LoadDBConfig() DatabaseConfig {
@@ -34,6 +36,22 @@ func LoadDBConfig() DatabaseConfig {
 		DB_HOST: os.Getenv("DB_HOST"),
 		DB_PORT: DB_PORT,
 		DB_NAME: os.Getenv("DB_NAME"),
+	}
+}
+
+func LoadServerConfig() ServerConfig {
+	godotenv.Load(".env")
+
+	SERVER_PORT, err := strconv.Atoi(os.Getenv("SERVER_PORT"))
+	
+	if err != nil {
+		panic(err)
+	}
+
+	return ServerConfig{
+		SERVER_PORT: SERVER_PORT,
+		SIGN_KEY: os.Getenv("SIGN_KEY"),
+		REFRESH_KEY: os.Getenv("REFRESH_KEY"),
 	}
 }
 

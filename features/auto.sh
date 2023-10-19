@@ -35,4 +35,4 @@ for FILE in ${FILES[@]}; do
 done
 
 # setup routes
-sed -e "s/placeholder/${FEATURE}/g" -e"s/Placeholder/${FEATURE^}/g" -e "s/_blueprint/${PARENTFOLDER}/g" ../_blueprint/routes.go > "../../routes/${PARENTHOLDER}s.go"
+sed -e "s/placeholder/${FEATURE}/g" -e"s/Placeholder/${FEATURE^}/g" -e "s/_blueprint/${PARENTFOLDER}/g" ../_blueprint/routes.go > "../../routes/${PARENTFOLDER}s.go"

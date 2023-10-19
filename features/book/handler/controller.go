@@ -35,7 +35,8 @@ func (ctl *controller) GetBooks() echo.HandlerFunc {
 		// fmt.Printf("page: %d, %T | size: %d, %T \n", pagination.Page, pagination.Page, pagination.Size, pagination.Size)
 
 		if page <= 0 || size <= 0 {
-			return ctx.JSON(400, helper.Response("Please provide query `page` and `size` in number!"))
+			page = 1
+			size = 10
 		}
 
 		books := ctl.service.FindAll(page, size)
@@ -56,7 +57,7 @@ func (ctl *controller) BookDetails() echo.HandlerFunc {
 		bookID, err := strconv.Atoi(ctx.Param("id"))
 
 		if err != nil {
-			return ctx.JSON(400, helper.Response(err.Error()))
+			return ctx.JSON(400, helper.Response("Param must be provided in number!"))
 		}
 
 		book := ctl.service.FindByID(bookID)
@@ -83,18 +84,18 @@ func (ctl *controller) CreateBook() echo.HandlerFunc {
 
 		if err != nil {
 			errMap := helpers.ErrorMapValidation(err)
-			return ctx.JSON(400, helper.Response("Bad Request!", map[string]any {
-				"error": errMap,
+			return ctx.JSON(400, helper.Response("Missing Data Required!", map[string]any {
+				"errors": errMap,
 			}))
 		}
 
 		book := ctl.service.Create(input)
 
 		if book == nil {
-			return ctx.JSON(500, helper.Response("Something went Wrong!", nil))
+			return ctx.JSON(500, helper.Response("Something Went Wrong!", nil))
 		}
 
-		return ctx.JSON(200, helper.Response("Success!", map[string]any {
+		return ctx.JSON(201, helper.Response("Success!", map[string]any {
 			"data": book,
 		}))
 	}
@@ -107,7 +108,7 @@ func (ctl *controller) UpdateBook() echo.HandlerFunc {
 		bookID, errParam := strconv.Atoi(ctx.Param("id"))
 
 		if errParam != nil {
-			return ctx.JSON(400, helper.Response(errParam.Error()))
+			return ctx.JSON(400, helper.Response("Param must be provided in number!"))
 		}
 
 		book := ctl.service.FindByID(bookID)
@@ -123,7 +124,7 @@ func (ctl *controller) UpdateBook() echo.HandlerFunc {
 
 		if err != nil {
 			errMap := helpers.ErrorMapValidation(err)
-			return ctx.JSON(400, helper.Response("Bad Request!", map[string]any {
+			return ctx.JSON(400, helper.Response("Missing Data Required!", map[string]any {
 				"error": errMap,
 			}))
 		}
@@ -143,7 +144,7 @@ func (ctl *controller) DeleteBook() echo.HandlerFunc {
 		bookID, err := strconv.Atoi(ctx.Param("id"))
 
 		if err != nil {
-			return ctx.JSON(400, helper.Response(err.Error()))
+			return ctx.JSON(400, helper.Response("Param must be provided in number!"))
 		}
 
 		book := ctl.service.FindByID(bookID)
@@ -158,6 +159,6 @@ func (ctl *controller) DeleteBook() echo.HandlerFunc {
 			return ctx.JSON(500, helper.Response("Something Went Wrong!"))
 		}
 
-		return ctx.JSON(200, helper.Response("Book Success Deleted!", nil))
+		return ctx.JSON(200, helper.Response("Book Success Deleted!"))
 	}
 }
