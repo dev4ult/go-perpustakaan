@@ -17,5 +17,13 @@ type LoanHistory struct {
 
 	Book     book.Book
 	Member   member.Member
-	FineType book.FineType
+	FineType FineType
+}
+
+type FineType struct {
+	gorm.Model
+
+	ID int `gorm:"type:int(11)"`
+	Name string `gorm:"type:varchar(255)"`
+	FineCost int `gorm:"type:int(11)"`
 }

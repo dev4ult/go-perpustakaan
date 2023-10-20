@@ -54,7 +54,7 @@ func (ctl *controller) PublisherDetails() echo.HandlerFunc {
 		publisherID, err := strconv.Atoi(ctx.Param("id"))
 
 		if err != nil {
-			return ctx.JSON(400, helper.Response(err.Error()))
+			return ctx.JSON(400, helper.Response("Please provide query `page` and `size` in number!"))
 		}
 
 		publisher := ctl.service.FindByID(publisherID)
@@ -81,7 +81,7 @@ func (ctl *controller) CreatePublisher() echo.HandlerFunc {
 
 		if err != nil {
 			errMap := helpers.ErrorMapValidation(err)
-			return ctx.JSON(400, helper.Response("Bad Request!", map[string]any {
+			return ctx.JSON(400, helper.Response("Missing Data Required!", map[string]any {
 				"error": errMap,
 			}))
 		}
@@ -121,7 +121,7 @@ func (ctl *controller) UpdatePublisher() echo.HandlerFunc {
 
 		if err != nil {
 			errMap := helpers.ErrorMapValidation(err)
-			return ctx.JSON(400, helper.Response("Bad Request!", map[string]any {
+			return ctx.JSON(400, helper.Response("Missing Data Required!", map[string]any {
 				"error": errMap,
 			}))
 		}
@@ -141,7 +141,7 @@ func (ctl *controller) DeletePublisher() echo.HandlerFunc {
 		publisherID, err := strconv.Atoi(ctx.Param("id"))
 
 		if err != nil {
-			return ctx.JSON(400, helper.Response(err.Error()))
+			return ctx.JSON(400, helper.Response("Please provide query `page` and `size` in number!"))
 		}
 
 		publisher := ctl.service.FindByID(publisherID)

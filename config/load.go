@@ -18,6 +18,7 @@ type DatabaseConfig struct {
 type ServerConfig struct {
 	SERVER_PORT int
 	SIGN_KEY string
+	CLOUD_URL string
 	REFRESH_KEY string
 }
 
@@ -51,6 +52,7 @@ func LoadServerConfig() ServerConfig {
 	return ServerConfig{
 		SERVER_PORT: SERVER_PORT,
 		SIGN_KEY: os.Getenv("SIGN_KEY"),
+		CLOUD_URL: os.Getenv("CLOUDINARY_URL"),
 		REFRESH_KEY: os.Getenv("REFRESH_KEY"),
 	}
 }

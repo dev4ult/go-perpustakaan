@@ -1,8 +1,10 @@
 package usecase
 
 import (
+	"mime/multipart"
 	"perpustakaan/features/book"
 	"perpustakaan/features/book/dtos"
+	"perpustakaan/helpers"
 
 	"github.com/labstack/gommon/log"
 	"github.com/mashingan/smapping"
@@ -19,63 +21,64 @@ func New(model book.Repository) book.Usecase {
 }
 
 func (svc *service) FindAll(page, size int) []dtos.ResBook {
-	var books []dtos.ResBook
+	var books, err = svc.model.Paginate(page, size)
 
-	booksEnt := svc.model.Paginate(page, size)
-
-	for _, book := range booksEnt {
-		var data dtos.ResBook
-
-		if err := smapping.FillStruct(&data, smapping.MapFields(book)); err != nil {
-			log.Error(err.Error())
-		} 
-		
-		books = append(books, data)
+	if err != nil {
+		log.Error(err.Error())
+		return nil
 	}
 
 	return books
 }
 
 func (svc *service) FindByID(bookID int) *dtos.ResBook {
-	res := dtos.ResBook{}
 	book := svc.model.SelectByID(bookID)
 
 	if book == nil {
 		return nil
 	}
 
-	err := smapping.FillStruct(&res, smapping.MapFields(book))
-	if err != nil {
-		log.Error(err)
-		return nil
-	}
+	// err := smapping.FillStruct(&res, smapping.MapFields(book))
+	// if err != nil {
+	// 	log.Error(err)
+	// 	return nil
+	// }
 
-	return &res
+	return book
 }
 
-func (svc *service) Create(newBook dtos.InputBook) *dtos.ResBook {
+func (svc *service) Create(newBook dtos.InputBook, bookCover multipart.File) *dtos.AfterInsert {
 	book := book.Book{}
 	
 	err := smapping.FillStruct(&book, smapping.MapFields(newBook))
 	if err != nil {
-		log.Error(err)
+		log.Error(err.Error())
 		return nil
 	}
 
+	imageURL, err := helpers.UploadImage("book-cover", bookCover)
+	
+	if err != nil {
+		log.Error(err.Error())
+		return nil
+	}
+
+	book.CoverImage = imageURL
 	bookID := svc.model.Insert(book)
 
 	if bookID == -1 {
 		return nil
 	}
 
-	resBook := dtos.ResBook{}
-	errRes := smapping.FillStruct(&resBook, smapping.MapFields(newBook))
+	resAfterInsert := dtos.AfterInsert{}
+	errRes := smapping.FillStruct(&resAfterInsert, smapping.MapFields(newBook))
 	if errRes != nil {
 		log.Error(errRes)
 		return nil
 	}
+	resAfterInsert.CoverImage = imageURL
 
-	return &resBook
+	return &resAfterInsert
 }
 
 func (svc *service) Modify(bookData dtos.InputBook, bookID int) bool {

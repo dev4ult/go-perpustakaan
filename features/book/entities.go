@@ -12,6 +12,7 @@ type Book struct {
 
 	ID int `gorm:"type:int(11)"`
 	Title string `gorm:"type:varchar(255)"`
+	CoverImage string `gorm:"type:varchar(255)"`
 	Summary string `gorm:"type:text"`
 	PublicationYear int `gorm:"type:int(7)"`
 	Quantity int `gorm:"type:int(11)"`
@@ -34,10 +35,3 @@ type Category struct {
 	Name string `gorm:"type:varchar(255)"`
 }
 
-type FineType struct {
-	gorm.Model
-
-	ID int `gorm:"type:int(11)"`
-	Name string `gorm:"type:varchar(255)"`
-	FineCost int `gorm:"type:int(11)"`
-}

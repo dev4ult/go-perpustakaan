@@ -32,8 +32,6 @@ func (ctl *controller) GetBooks() echo.HandlerFunc {
 		page := pagination.Page
 		size := pagination.Size
 
-		// fmt.Printf("page: %d, %T | size: %d, %T \n", pagination.Page, pagination.Page, pagination.Size, pagination.Size)
-
 		if page <= 0 || size <= 0 {
 			page = 1
 			size = 10
@@ -76,20 +74,28 @@ func (ctl *controller) CreateBook() echo.HandlerFunc {
 	return func (ctx echo.Context) error  {
 		input := dtos.InputBook{}
 
-		ctx.Bind(&input)
-
-		validate = validator.New(validator.WithRequiredStructEnabled())
-
-		err := validate.Struct(input)
-
+		formHeader, err := ctx.FormFile("cover-img")
 		if err != nil {
+			return ctx.JSON(400, helper.Response("Missing Cover Image as `cover-img` (Required!)"))
+		}
+
+		formFile, err := formHeader.Open()
+		if err != nil {
+			return ctx.JSON(500, helper.Response(err.Error()))
+		}
+
+		ctx.Bind(&input)
+		validate = validator.New(validator.WithRequiredStructEnabled())
+		errValidation := validate.Struct(input)
+
+		if errValidation != nil {
 			errMap := helpers.ErrorMapValidation(err)
 			return ctx.JSON(400, helper.Response("Missing Data Required!", map[string]any {
 				"errors": errMap,
 			}))
 		}
 
-		book := ctl.service.Create(input)
+		book := ctl.service.Create(input, formFile)
 
 		if book == nil {
 			return ctx.JSON(500, helper.Response("Something Went Wrong!", nil))

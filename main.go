@@ -16,6 +16,11 @@ import (
 	br "perpustakaan/features/book/repository"
 	bu "perpustakaan/features/book/usecase"
 
+	"perpustakaan/features/publisher"
+	ph "perpustakaan/features/publisher/handler"
+	pr "perpustakaan/features/publisher/repository"
+	pu "perpustakaan/features/publisher/usecase"
+
 	"perpustakaan/features/member"
 	mh "perpustakaan/features/member/handler"
 	mr "perpustakaan/features/member/repository"
@@ -38,6 +43,13 @@ func BookHandler() book.Handler {
 	return bh.New(uc)
 }
 
+func PublisherHandler() publisher.Handler {
+	db := utils.InitDB()
+	repo := pr.New(db)
+	uc := pu.New(repo)
+	return ph.New(uc)
+}
+
 func MemberHandler() member.Handler {
 	db := utils.InitDB()
 	repo := mr.New(db)
@@ -47,6 +59,7 @@ func MemberHandler() member.Handler {
 
 var (
 	bookHandler = BookHandler()
+	publisherHandler = PublisherHandler()
 	authHandler = AuthHandler()
 	memberHandler = MemberHandler()
 )
@@ -57,6 +70,7 @@ func main() {
 
 	routes.Auths(e, authHandler)
 	routes.Books(e, bookHandler, cfg)
+	routes.Publishers(e, publisherHandler)
 	routes.Members(e, memberHandler)
 	
 	e.Logger.Fatal(e.Start(fmt.Sprintf(":%d", cfg.SERVER_PORT)))

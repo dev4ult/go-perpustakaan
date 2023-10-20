@@ -1,7 +1,10 @@
 package dtos
 
+import "mime/multipart"
+
 type InputBook struct {
 	Title           string `json:"title" form:"title" validate:"required"`
+	CoverImage      multipart.File `json:"cover-img" form:"cover-img"`
 	Summary         string `json:"summary" form:"summary" validate:"required"`
 	PublicationYear int    `json:"publication-year" form:"publication-year" validate:"required"`
 	Quantity        int    `json:"qty" form:"qty" validate:"required"`
