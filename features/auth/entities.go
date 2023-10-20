@@ -9,9 +9,9 @@ type Librarian struct {
 
 	ID int `gorm:"type:int(11)"`
 	FullName string `gorm:"type:varchar(255)"`
-	StaffID string 
-	NIK int
-	PhoneNumber string
-	Address string
+	StaffID string `gorm:"type:varchar(255)"`
+	NIK int `gorm:"type:varchar(16)"`
+	PhoneNumber string `gorm:"type:varchar(20)"`
+	Address string `gorm:"text"`
 }
 

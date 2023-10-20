@@ -13,9 +13,11 @@ type Repository interface {
 }
 
 type Usecase interface {
-	CheckAuthorization(credential string, password string, isStaff bool) *dtos.ResAuthorization
+	VerifyLogin(credential string, password string, isStaff bool) *dtos.ResAuthorization
+	RefreshToken(accessToken, refreshToken string) *dtos.Token
 }
 
 type Handler interface {
 	Login() echo.HandlerFunc
+	Refresh() echo.HandlerFunc
 }

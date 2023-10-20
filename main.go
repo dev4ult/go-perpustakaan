@@ -68,7 +68,7 @@ func main() {
 	cfg := config.LoadServerConfig()
 	e := echo.New()
 
-	routes.Auths(e, authHandler)
+	routes.Auths(e, authHandler, cfg)
 	routes.Books(e, bookHandler, cfg)
 	routes.Publishers(e, publisherHandler)
 	routes.Members(e, memberHandler)

@@ -6,6 +6,11 @@ type ResAuthorization struct {
 	RefreshToken string `json:"refresh-token"`
 }
 
+type Token struct {
+	AccessToken string `json:"access-token"`
+	RefreshToken string `json:"refresh-token"`
+}
+
 type User struct {
 	ID int
 	FullName string 

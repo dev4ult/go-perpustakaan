@@ -42,13 +42,13 @@ func (ctl *controller) Login() echo.HandlerFunc {
 			return ctx.JSON(400, helper.Response("Choose between `credential-number` and `staff-id` for Login. Do not send both!"))
 		}
 
-		isStaff := false
+		isLibrarian := false
 
 		if input.StaffID != "" {
-			isStaff = true
+			isLibrarian = true
 		}
 
-		authorization := ctl.service.CheckAuthorization(input.CredentialNumber, input.Password, isStaff)
+		authorization := ctl.service.VerifyLogin(input.CredentialNumber, input.Password, isLibrarian)
 
 		if authorization == nil {
 			return ctx.JSON(404, helper.Response("Your credential or password does not Match!"))
@@ -56,6 +56,35 @@ func (ctl *controller) Login() echo.HandlerFunc {
 		
 		return ctx.JSON(200, helper.Response("Success Login!", map[string]any {
 			"data": authorization,
+		}))
+	}
+}
+
+func (ctl *controller) Refresh() echo.HandlerFunc {
+	return func(ctx echo.Context) error {
+		refreshToken := ctx.Request().Header.Get("Authorization")
+		var	authorization dtos.Authorization
+		
+		ctx.Bind(&authorization)
+
+		validate = validator.New(validator.WithRequiredStructEnabled())
+
+		err := validate.Struct(authorization)
+
+		if err != nil {
+			return ctx.JSON(400, helper.Response("Missing Access Token!"))
+		}
+
+		refreshToken = refreshToken[len("Bearer "):]
+
+		newToken := ctl.service.RefreshToken(authorization.AccessToken, refreshToken)
+
+		if newToken == nil {
+			return ctx.JSON(500, helper.Response("Something Went Wrong!"))
+		}
+
+		return ctx.JSON(200, helper.Response("Token Refreshed!", map[string]any {
+			"data": newToken,
 		}))
 	}
 }

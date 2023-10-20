@@ -33,7 +33,7 @@ func (ctl *controller) GetPublishers() echo.HandlerFunc {
 		size := pagination.Size
 
 		if page <= 0 || size <= 0 {
-			return ctx.JSON(400, helper.Response("Please provide query `page` and `size` in number!"))
+			return ctx.JSON(400, helper.Response("Param must be provided in number!"))
 		}
 
 		publishers := ctl.service.FindAll(page, size)
@@ -54,7 +54,7 @@ func (ctl *controller) PublisherDetails() echo.HandlerFunc {
 		publisherID, err := strconv.Atoi(ctx.Param("id"))
 
 		if err != nil {
-			return ctx.JSON(400, helper.Response("Please provide query `page` and `size` in number!"))
+			return ctx.JSON(400, helper.Response("Param must be provided in number!"))
 		}
 
 		publisher := ctl.service.FindByID(publisherID)
@@ -141,7 +141,7 @@ func (ctl *controller) DeletePublisher() echo.HandlerFunc {
 		publisherID, err := strconv.Atoi(ctx.Param("id"))
 
 		if err != nil {
-			return ctx.JSON(400, helper.Response("Please provide query `page` and `size` in number!"))
+			return ctx.JSON(400, helper.Response("Param must be provided in number!"))
 		}
 
 		publisher := ctl.service.FindByID(publisherID)

@@ -20,16 +20,19 @@ func New(model auth.Repository) auth.Usecase {
 	}
 }
 
-func (svc *service) CheckAuthorization(credential string, password string, isStaff bool) *dtos.ResAuthorization {
+func (svc *service) VerifyLogin(credential string, password string, isLibrarian bool) *dtos.ResAuthorization {
 	var userTemp dtos.User
 	var err error
+	var role string
 
-	if isStaff {
+	if isLibrarian {
 		user := svc.model.SelectLibrarianByStaffID(credential)
 		err = smapping.FillStruct(&userTemp, smapping.MapFields(user))
+		role = "librarian"
 	} else {
 		user := svc.model.SelectMemberByCredentialNumber(credential)
 		err = smapping.FillStruct(&userTemp, smapping.MapFields(user))
+		role = "member"
 	}
 
 	if err != nil {
@@ -43,7 +46,7 @@ func (svc *service) CheckAuthorization(credential string, password string, isSta
 	}
 	
 	if matchPassword := helpers.VerifyHash(password, userTemp.Password); matchPassword {
-		token := utils.GenerateToken(userTemp.ID)
+		token := utils.GenerateToken(userTemp.ID, role)
 		response := dtos.ResAuthorization{
 			FullName: userTemp.FullName,
 			AccessToken: token.AccessToken,
@@ -57,7 +60,25 @@ func (svc *service) CheckAuthorization(credential string, password string, isSta
 	return nil
 }
 
+func (svc *service) RefreshToken(accessToken, refreshToken string) *dtos.Token {
+	claims := utils.ExtractRefreshToken(refreshToken)
+	
+	if claims == nil {
+		return nil
+	}
+	
+	token := utils.GenerateToken(claims["id"].(int), claims["role"].(string))
 
+	if token == nil {
+		log.Error("Token Error")
+		return nil
+	}
+	
+	return &dtos.Token{
+		AccessToken: token.AccessToken,
+		RefreshToken: token.RefreshToken,
+	}
+}
 
 // func (svc *service) FindAll(page, size int) []dtos.ResAuth {
 // 	var auths []dtos.ResAuth
