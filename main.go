@@ -31,26 +31,25 @@ import (
 	aur "perpustakaan/features/author/repository"
 	auu "perpustakaan/features/author/usecase"
 
+	"perpustakaan/features/feedback"
+	fh "perpustakaan/features/feedback/handler"
+	fr "perpustakaan/features/feedback/repository"
+	fu "perpustakaan/features/feedback/usecase"
+
 	"github.com/labstack/echo/v4"
 )
 
-var (
-	bookHandler = BookHandler()
-	publisherHandler = PublisherHandler()
-	authHandler = AuthHandler()
-	memberHandler = MemberHandler()
-	authorHandler = AuthorHandler()
-)
 
 func main() {
 	cfg := config.LoadServerConfig()
 	e := echo.New()
 
-	routes.Auths(e, authHandler, cfg)
-	routes.Books(e, bookHandler, cfg)
-	routes.Publishers(e, publisherHandler)
-	routes.Members(e, memberHandler)
-	routes.Authors(e, authorHandler)
+	routes.Auths(e, AuthHandler(), cfg)
+	routes.Books(e, BookHandler(), cfg)
+	routes.Publishers(e, PublisherHandler())
+	routes.Members(e, MemberHandler())
+	routes.Authors(e, AuthorHandler())
+	routes.Feedbacks(e, FeedbackHandler())
 	
 	e.Logger.Fatal(e.Start(fmt.Sprintf(":%d", cfg.SERVER_PORT)))
 }
@@ -88,4 +87,11 @@ func AuthorHandler() author.Handler {
 	repo := aur.New(db)
 	uc := auu.New(repo)
 	return auh.New(uc)
+}
+
+func FeedbackHandler() feedback.Handler {
+	db := utils.InitDB()
+	repo := fr.New(db)
+	uc := fu.New(repo)
+	return fh.New(uc)
 }

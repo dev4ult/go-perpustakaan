@@ -5,18 +5,18 @@ import (
 	helper "perpustakaan/helpers"
 	"strconv"
 
-	"perpustakaan/features/_blueprint"
-	"perpustakaan/features/_blueprint/dtos"
+	"perpustakaan/features/feedback"
+	"perpustakaan/features/feedback/dtos"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 )
 
 type controller struct {
-	service _blueprint.Usecase
+	service feedback.Usecase
 }
 
-func New(service _blueprint.Usecase) _blueprint.Handler {
+func New(service feedback.Usecase) feedback.Handler {
 	return &controller {
 		service: service,
 	}
@@ -24,7 +24,7 @@ func New(service _blueprint.Usecase) _blueprint.Handler {
 
 var validate *validator.Validate
 
-func (ctl *controller) GetPlaceholders() echo.HandlerFunc {
+func (ctl *controller) GetFeedbacks() echo.HandlerFunc {
 	return func (ctx echo.Context) error  {
 		pagination := dtos.Pagination{}
 		ctx.Bind(&pagination)
@@ -36,47 +36,45 @@ func (ctl *controller) GetPlaceholders() echo.HandlerFunc {
 			return ctx.JSON(400, helper.Response("Param must be provided in number!"))
 		}
 
-		placeholders := ctl.service.FindAll(page, size)
+		feedbacks := ctl.service.FindAll(page, size)
 
-		if placeholders == nil {
-			return ctx.JSON(404, helper.Response("There is No Placeholders!"))
+		if feedbacks == nil {
+			return ctx.JSON(404, helper.Response("There is No Feedbacks!"))
 		}
 
 		return ctx.JSON(200, helper.Response("Success!", map[string]any {
-			"data": placeholders,
+			"data": feedbacks,
 		}))
 	}
 }
 
 
-func (ctl *controller) PlaceholderDetails() echo.HandlerFunc {
+func (ctl *controller) FeedbackDetails() echo.HandlerFunc {
 	return func (ctx echo.Context) error  {
-		placeholderID, err := strconv.Atoi(ctx.Param("id"))
+		feedbackID, err := strconv.Atoi(ctx.Param("id"))
 
 		if err != nil {
 			return ctx.JSON(400, helper.Response("Param must be provided in number!"))
 		}
 
-		placeholder := ctl.service.FindByID(placeholderID)
+		feedback := ctl.service.FindByID(feedbackID)
 
-		if placeholder == nil {
-			return ctx.JSON(404, helper.Response("Placeholder Not Found!"))
+		if feedback == nil {
+			return ctx.JSON(404, helper.Response("Feedback Not Found!"))
 		}
 
 		return ctx.JSON(200, helper.Response("Success!", map[string]any {
-			"data": placeholder,
+			"data": feedback,
 		}))
 	}
 }
 
-func (ctl *controller) CreatePlaceholder() echo.HandlerFunc {
+func (ctl *controller) CreateFeedback() echo.HandlerFunc {
 	return func (ctx echo.Context) error  {
-		input := dtos.InputPlaceholder{}
+		input := dtos.InputFeedback{}
 
 		ctx.Bind(&input)
-
 		validate = validator.New(validator.WithRequiredStructEnabled())
-
 		err := validate.Struct(input)
 
 		if err != nil {
@@ -86,32 +84,35 @@ func (ctl *controller) CreatePlaceholder() echo.HandlerFunc {
 			}))
 		}
 
-		placeholder := ctl.service.Create(input)
+		feedback := ctl.service.Create(input)
 
-		if placeholder == nil {
+		if feedback == nil {
 			return ctx.JSON(500, helper.Response("Something went Wrong!", nil))
 		}
 
 		return ctx.JSON(200, helper.Response("Success!", map[string]any {
-			"data": placeholder,
+			"data": feedback,
 		}))
 	}
 }
 
-func (ctl *controller) UpdatePlaceholder() echo.HandlerFunc {
-	return func (ctx echo.Context) error {
-		input := dtos.InputPlaceholder{}
 
-		placeholderID, errParam := strconv.Atoi(ctx.Param("id"))
+// Not sure
+
+func (ctl *controller) UpdateFeedback() echo.HandlerFunc {
+	return func (ctx echo.Context) error {
+		input := dtos.InputFeedback{}
+
+		feedbackID, errParam := strconv.Atoi(ctx.Param("id"))
 
 		if errParam != nil {
 			return ctx.JSON(400, helper.Response(errParam.Error()))
 		}
 
-		placeholder := ctl.service.FindByID(placeholderID)
+		feedback := ctl.service.FindByID(feedbackID)
 
-		if placeholder == nil {
-			return ctx.JSON(404, helper.Response("Placeholder Not Found!"))
+		if feedback == nil {
+			return ctx.JSON(404, helper.Response("Feedback Not Found!"))
 		}
 		
 		ctx.Bind(&input)
@@ -126,36 +127,36 @@ func (ctl *controller) UpdatePlaceholder() echo.HandlerFunc {
 			}))
 		}
 
-		update := ctl.service.Modify(input, placeholderID)
+		update := ctl.service.Modify(input, feedbackID)
 
 		if !update {
 			return ctx.JSON(500, helper.Response("Something Went Wrong!"))
 		}
 
-		return ctx.JSON(200, helper.Response("Placeholder Success Updated!"))
+		return ctx.JSON(200, helper.Response("Feedback Success Updated!"))
 	}
 }
 
-func (ctl *controller) DeletePlaceholder() echo.HandlerFunc {
+func (ctl *controller) DeleteFeedback() echo.HandlerFunc {
 	return func (ctx echo.Context) error  {
-		placeholderID, err := strconv.Atoi(ctx.Param("id"))
+		feedbackID, err := strconv.Atoi(ctx.Param("id"))
 
 		if err != nil {
 			return ctx.JSON(400, helper.Response("Param must be provided in number!"))
 		}
 
-		placeholder := ctl.service.FindByID(placeholderID)
+		feedback := ctl.service.FindByID(feedbackID)
 
-		if placeholder == nil {
-			return ctx.JSON(404, helper.Response("Placeholder Not Found!"))
+		if feedback == nil {
+			return ctx.JSON(404, helper.Response("Feedback Not Found!"))
 		}
 
-		delete := ctl.service.Remove(placeholderID)
+		delete := ctl.service.Remove(feedbackID)
 
 		if !delete {
 			return ctx.JSON(500, helper.Response("Something Went Wrong!"))
 		}
 
-		return ctx.JSON(200, helper.Response("Placeholder Success Deleted!", nil))
+		return ctx.JSON(200, helper.Response("Feedback Success Deleted!", nil))
 	}
 }
