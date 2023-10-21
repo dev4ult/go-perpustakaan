@@ -26,8 +26,34 @@ import (
 	mr "perpustakaan/features/member/repository"
 	mu "perpustakaan/features/member/usecase"
 
+	"perpustakaan/features/author"
+	auh "perpustakaan/features/author/handler"
+	aur "perpustakaan/features/author/repository"
+	auu "perpustakaan/features/author/usecase"
+
 	"github.com/labstack/echo/v4"
 )
+
+var (
+	bookHandler = BookHandler()
+	publisherHandler = PublisherHandler()
+	authHandler = AuthHandler()
+	memberHandler = MemberHandler()
+	authorHandler = AuthorHandler()
+)
+
+func main() {
+	cfg := config.LoadServerConfig()
+	e := echo.New()
+
+	routes.Auths(e, authHandler, cfg)
+	routes.Books(e, bookHandler, cfg)
+	routes.Publishers(e, publisherHandler)
+	routes.Members(e, memberHandler)
+	routes.Authors(e, authorHandler)
+	
+	e.Logger.Fatal(e.Start(fmt.Sprintf(":%d", cfg.SERVER_PORT)))
+}
 
 func AuthHandler() auth.Handler {
 	db := utils.InitDB()
@@ -57,21 +83,9 @@ func MemberHandler() member.Handler {
 	return mh.New(uc)
 }
 
-var (
-	bookHandler = BookHandler()
-	publisherHandler = PublisherHandler()
-	authHandler = AuthHandler()
-	memberHandler = MemberHandler()
-)
-
-func main() {
-	cfg := config.LoadServerConfig()
-	e := echo.New()
-
-	routes.Auths(e, authHandler, cfg)
-	routes.Books(e, bookHandler, cfg)
-	routes.Publishers(e, publisherHandler)
-	routes.Members(e, memberHandler)
-	
-	e.Logger.Fatal(e.Start(fmt.Sprintf(":%d", cfg.SERVER_PORT)))
+func AuthorHandler() author.Handler {
+	db := utils.InitDB()
+	repo := aur.New(db)
+	uc := auu.New(repo)
+	return auh.New(uc)
 }
