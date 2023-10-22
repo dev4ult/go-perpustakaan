@@ -7,9 +7,9 @@ import (
 )
 
 type Repository interface {
-	Paginate(page, size int) []Feedback
-	Insert(newFeedback Feedback) int64
-	SelectByID(feedbackID int) *Feedback
+	Paginate(page, size int) []dtos.ResFeedback
+	Insert(newFeedback Feedback) *dtos.ResFeedback
+	SelectByID(feedbackID int) *dtos.ResFeedback
 	Update(feedback Feedback) int64
 	DeleteByID(feedbackID int) int64
 }

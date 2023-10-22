@@ -4,6 +4,7 @@ import (
 	"perpustakaan/config"
 	"perpustakaan/features/author"
 	"perpustakaan/features/book"
+	"perpustakaan/features/feedback"
 	"perpustakaan/features/loan_history"
 	"perpustakaan/features/publisher"
 
@@ -32,4 +33,5 @@ func migrate(db *gorm.DB) {
 	db.AutoMigrate(publisher.Publisher{}, author.Author{})
 	db.AutoMigrate(book.Category{}, book.Book{})
 	db.AutoMigrate(loan_history.LoanHistory{}, author.Authorship{})
+	db.AutoMigrate(feedback.Feedback{}, feedback.FeedbackReply{})
 }

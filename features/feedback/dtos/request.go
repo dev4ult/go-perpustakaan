@@ -1,8 +1,13 @@
 package dtos
 
 type InputFeedback struct {
-	MemberID int `json:"user-id" validate:"required"`
-	Comment string `json:"name" form:"name" validate:"required"`
+	MemberID *int `json:"user-id"`
+	Comment string `json:"comment" form:"comment" validate:"required"`
+}
+
+type Prediction struct {
+	Label string  `json:"label"`
+	Score float64 `json:"score"`
 }
 
 type Pagination struct {

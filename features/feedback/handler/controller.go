@@ -3,6 +3,7 @@ package handler
 import (
 	"perpustakaan/helpers"
 	helper "perpustakaan/helpers"
+	"perpustakaan/utils"
 	"strconv"
 
 	"perpustakaan/features/feedback"
@@ -71,6 +72,7 @@ func (ctl *controller) FeedbackDetails() echo.HandlerFunc {
 
 func (ctl *controller) CreateFeedback() echo.HandlerFunc {
 	return func (ctx echo.Context) error  {
+		authorization := ctx.Request().Header.Get("Authorization")
 		input := dtos.InputFeedback{}
 
 		ctx.Bind(&input)
@@ -80,14 +82,27 @@ func (ctl *controller) CreateFeedback() echo.HandlerFunc {
 		if err != nil {
 			errMap := helpers.ErrorMapValidation(err)
 			return ctx.JSON(400, helper.Response("Missing Data Required!", map[string]any {
-				"error": errMap,
+				"errors": errMap,
 			}))
+		}
+
+		if authorization != "" {
+			token := authorization[len("Bearer "):]
+			claims := utils.ExtractToken(token)
+
+			if claims == nil {
+				return ctx.JSON(401, helpers.Response("Invalid Token Given!"))
+			}
+
+			userID := int(claims["user-id"].(float64))
+
+			input.MemberID = &userID 
 		}
 
 		feedback := ctl.service.Create(input)
 
 		if feedback == nil {
-			return ctx.JSON(500, helper.Response("Something went Wrong!", nil))
+			return ctx.JSON(500, helper.Response("Something Went Wrong!", nil))
 		}
 
 		return ctx.JSON(200, helper.Response("Success!", map[string]any {

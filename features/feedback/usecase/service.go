@@ -1,8 +1,14 @@
 package usecase
 
 import (
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"net/http"
+	"perpustakaan/config"
 	"perpustakaan/features/feedback"
 	"perpustakaan/features/feedback/dtos"
+	"perpustakaan/helpers"
 
 	"github.com/labstack/gommon/log"
 	"github.com/mashingan/smapping"
@@ -19,19 +25,7 @@ func New(model feedback.Repository) feedback.Usecase {
 }
 
 func (svc *service) FindAll(page, size int) []dtos.ResFeedback {
-	var feedbacks []dtos.ResFeedback
-
-	feedbacksEnt := svc.model.Paginate(page, size)
-
-	for _, feedback := range feedbacksEnt {
-		var data dtos.ResFeedback
-
-		if err := smapping.FillStruct(&data, smapping.MapFields(feedback)); err != nil {
-			log.Error(err.Error())
-		} 
-		
-		feedbacks = append(feedbacks, data)
-	}
+	feedbacks := svc.model.Paginate(page, size)
 
 	return feedbacks
 }
@@ -44,11 +38,14 @@ func (svc *service) FindByID(feedbackID int) *dtos.ResFeedback {
 		return nil
 	}
 
-	err := smapping.FillStruct(&res, smapping.MapFields(feedback))
-	if err != nil {
-		log.Error(err)
-		return nil
-	}
+	// resFeedback.User = "Anonymous"
+	// if fb.MemberID != nil {
+	// 	memberName := svc.model.SelectNameMemberByID(*fb.MemberID)
+		
+	// 	if memberName != "" {
+	// 		resFeedback.User = memberName
+	// 	}
+	// }
 
 	return &res
 }
@@ -62,20 +59,65 @@ func (svc *service) Create(newFeedback dtos.InputFeedback) *dtos.ResFeedback {
 		return nil
 	}
 
-	feedbackID := svc.model.Insert(feedback)
+	const APIURL = "https://api-inference.huggingface.co/models/ayameRushia/bert-base-indonesian-1.5G-sentiment-analysis-smsa"
 
-	if feedbackID == -1 {
+	var body = []byte(fmt.Sprintf(`{"inputs": "%s"}`, newFeedback.Comment))
+
+	req, err := http.NewRequest("POST", APIURL, bytes.NewBuffer(body))
+
+	feedback.PriorityStatus = "low"
+
+	if err != nil {
+		log.Error("Error Creating Request")
+	} else {
+		cfg := config.LoadServerConfig()
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("Authorization", "Bearer " + cfg.HGF_TOKEN)
+
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			log.Error("Error sending request:", err)
+		}
+		defer resp.Body.Close()
+
+		// Read and print the response
+		buf := new(bytes.Buffer)
+		_, err = buf.ReadFrom(resp.Body)
+		if err != nil {
+			log.Error("Error reading response:", err)
+		}
+
+		// fmt.Println(buf.String())
+
+		if resp.StatusCode == 200 {
+			var predictions [][]dtos.Prediction
+			err = json.Unmarshal(buf.Bytes(), &predictions)
+			if err != nil {
+				log.Error("Error parsing JSON response:", err)
+			}
+
+			// Find the label with the highest score
+			var highestLabel string
+			var highestScore float64
+
+			for _, prediction := range predictions {
+				if prediction[0].Score > highestScore {
+					highestScore = prediction[0].Score
+					highestLabel = prediction[0].Label
+				}
+			}
+
+			feedback.PriorityStatus = helpers.GetPrediction(highestLabel)
+		} 
+	}
+
+	fb := svc.model.Insert(feedback)
+
+	if fb == nil {
 		return nil
 	}
 
-	resFeedback := dtos.ResFeedback{}
-	errRes := smapping.FillStruct(&resFeedback, smapping.MapFields(newFeedback))
-	if errRes != nil {
-		log.Error(errRes)
-		return nil
-	}
-
-	return &resFeedback
+	return fb
 }
 
 func (svc *service) Modify(feedbackData dtos.InputFeedback, feedbackID int) bool {
