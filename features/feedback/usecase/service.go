@@ -31,23 +31,14 @@ func (svc *service) FindAll(page, size int) []dtos.ResFeedback {
 }
 
 func (svc *service) FindByID(feedbackID int) *dtos.ResFeedback {
-	res := dtos.ResFeedback{}
 	feedback := svc.model.SelectByID(feedbackID)
 
 	if feedback == nil {
+		log.Error("Feedback Not Found!")
 		return nil
 	}
 
-	// resFeedback.User = "Anonymous"
-	// if fb.MemberID != nil {
-	// 	memberName := svc.model.SelectNameMemberByID(*fb.MemberID)
-		
-	// 	if memberName != "" {
-	// 		resFeedback.User = memberName
-	// 	}
-	// }
-
-	return &res
+	return feedback
 }
 
 func (svc *service) Create(newFeedback dtos.InputFeedback) *dtos.ResFeedback {
@@ -58,14 +49,15 @@ func (svc *service) Create(newFeedback dtos.InputFeedback) *dtos.ResFeedback {
 		log.Error(err)
 		return nil
 	}
-
+	
+	feedback.PriorityStatus = "low"
+	
 	const APIURL = "https://api-inference.huggingface.co/models/ayameRushia/bert-base-indonesian-1.5G-sentiment-analysis-smsa"
 
 	var body = []byte(fmt.Sprintf(`{"inputs": "%s"}`, newFeedback.Comment))
 
 	req, err := http.NewRequest("POST", APIURL, bytes.NewBuffer(body))
 
-	feedback.PriorityStatus = "low"
 
 	if err != nil {
 		log.Error("Error Creating Request")
@@ -120,24 +112,32 @@ func (svc *service) Create(newFeedback dtos.InputFeedback) *dtos.ResFeedback {
 	return fb
 }
 
-func (svc *service) Modify(feedbackData dtos.InputFeedback, feedbackID int) bool {
-	newFeedback := feedback.Feedback{}
-
-	err := smapping.FillStruct(&newFeedback, smapping.MapFields(feedbackData))
-	if err != nil {
-		log.Error(err)
-		return false
-	}
-
-	newFeedback.ID = feedbackID
-	rowsAffected := svc.model.Update(newFeedback)
-
-	if rowsAffected <= 0 {
-		log.Error("There is No Feedback Updated!")
-		return false
-	}
+func (svc *service) AddAReply(replyData dtos.InputReply, feedbackID int) *dtos.FeedbackWithReply {
+	feedbackReply := feedback.FeedbackReply{}
 	
-	return true
+	if err := smapping.FillStruct(&feedbackReply, smapping.MapFields(replyData)); err != nil {
+		log.Error(err)
+		return nil
+	}
+
+	feedbackReply.FeedbackID = feedbackID
+	staffReply := svc.model.InsertReplyForAFeedback(feedbackReply)
+
+	if staffReply == nil {
+		log.Error("There is No Feedback Updated!")
+		return nil
+	}
+
+	feedbackWithReply := dtos.FeedbackWithReply{}
+
+	if err := smapping.FillStruct(&feedbackWithReply, smapping.MapFields(replyData)); err != nil {
+		log.Error(err)
+		return nil
+	}
+
+	feedbackWithReply.Reply = *staffReply
+	
+	return &feedbackWithReply
 }
 
 func (svc *service) Remove(feedbackID int) bool {

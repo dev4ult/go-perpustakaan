@@ -22,7 +22,6 @@ func New(service author.Usecase) author.Handler {
 	}
 }
 
-var validate *validator.Validate
 
 func (ctl *controller) GetAuthors() echo.HandlerFunc {
 	return func (ctx echo.Context) error  {
@@ -75,11 +74,7 @@ func (ctl *controller) CreateAuthor() echo.HandlerFunc {
 
 		ctx.Bind(&input)
 
-		validate = validator.New(validator.WithRequiredStructEnabled())
-
-		err := validate.Struct(input)
-
-		if err != nil {
+		if err := helpers.ValidateRequest(input); err != nil {
 			errMap := helpers.ErrorMapValidation(err)
 			return ctx.JSON(400, helper.Response("Missing Data Required!", map[string]any {
 				"error": errMap,
@@ -116,10 +111,7 @@ func (ctl *controller) UpdateAuthor() echo.HandlerFunc {
 		
 		ctx.Bind(&input)
 
-		validate = validator.New(validator.WithRequiredStructEnabled())
-		err := validate.Struct(input)
-
-		if err != nil {
+		if err := helpers.ValidateRequest(input); err != nil {
 			errMap := helpers.ErrorMapValidation(err)
 			return ctx.JSON(400, helper.Response("Missing Data Required!", map[string]any {
 				"error": errMap,

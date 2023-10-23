@@ -13,6 +13,6 @@ func Feedbacks(e *echo.Echo, handler feedback.Handler) {
 	feedbacks.POST("", handler.CreateFeedback())
 	
 	feedbacks.GET("/:id", handler.FeedbackDetails())
-	feedbacks.PUT("/:id", handler.UpdateFeedback())
+	feedbacks.POST("/:id", handler.ReplyOnFeedback())
 	feedbacks.DELETE("/:id", handler.DeleteFeedback())
 }

@@ -1,12 +1,12 @@
 package handler
 
 import (
+	"perpustakaan/helpers"
 	helper "perpustakaan/helpers"
 
 	"perpustakaan/features/auth"
 	"perpustakaan/features/auth/dtos"
 
-	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 )
 
@@ -20,7 +20,6 @@ func New(service auth.Usecase) auth.Handler {
 	}
 }
 
-var validate *validator.Validate
 
 func (ctl *controller) Login() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
@@ -28,10 +27,7 @@ func (ctl *controller) Login() echo.HandlerFunc {
 
 		ctx.Bind(&input)
 
-		validate = validator.New(validator.WithRequiredStructEnabled())
-		err := validate.Struct(input)
-
-		if err != nil {
+		if err := helpers.ValidateRequest(input); err != nil {
 			errMap := helper.ErrorMapValidation(err)
 			return ctx.JSON(400, helper.Response("Login Credential Can Not be Empty!", map[string]any {
 				"error": errMap,
@@ -67,11 +63,7 @@ func (ctl *controller) Refresh() echo.HandlerFunc {
 		
 		ctx.Bind(&authorization)
 
-		validate = validator.New(validator.WithRequiredStructEnabled())
-
-		err := validate.Struct(authorization)
-
-		if err != nil {
+		if err := helpers.ValidateRequest(authorization); err != nil {
 			return ctx.JSON(400, helper.Response("Missing Access Token!"))
 		}
 

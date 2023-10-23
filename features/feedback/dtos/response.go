@@ -1,9 +1,20 @@
 package dtos
 
 type ResFeedback struct {
-	User			string `json:"user"`
+	Member			string `json:"member"`
 	Comment 		string `json:"comment"`
 	PriorityStatus 	string `json:"priority-status"`
-	ReplyComment 	string `json:"reply-comment"`
+}
+
+type FeedbackWithReply struct {
+	Member			string `json:"member"`
+	Comment 		string `json:"comment"`
+	PriorityStatus 	string `json:"priority-status"`
+	Reply 			StaffReply
+}
+
+type StaffReply struct {
+	Staff	string `json:"staff"`	
+	Comment string `json:"comment"`
 }
 

@@ -49,7 +49,6 @@ func (ctl *controller) GetFeedbacks() echo.HandlerFunc {
 	}
 }
 
-
 func (ctl *controller) FeedbackDetails() echo.HandlerFunc {
 	return func (ctx echo.Context) error  {
 		feedbackID, err := strconv.Atoi(ctx.Param("id"))
@@ -95,6 +94,9 @@ func (ctl *controller) CreateFeedback() echo.HandlerFunc {
 			}
 
 			userID := int(claims["user-id"].(float64))
+			if role := claims["role"]; role == "librarian" {
+				return ctx.JSON(401, helpers.Response("Member Only Authorization!"))
+			}
 
 			input.MemberID = &userID 
 		}
@@ -111,17 +113,16 @@ func (ctl *controller) CreateFeedback() echo.HandlerFunc {
 	}
 }
 
-
-// Not sure
-
-func (ctl *controller) UpdateFeedback() echo.HandlerFunc {
+func (ctl *controller) ReplyOnFeedback() echo.HandlerFunc {
 	return func (ctx echo.Context) error {
-		input := dtos.InputFeedback{}
+		authorization := ctx.Request().Header.Get("Authorization")
 
-		feedbackID, errParam := strconv.Atoi(ctx.Param("id"))
+		input := dtos.InputReply{}
 
-		if errParam != nil {
-			return ctx.JSON(400, helper.Response(errParam.Error()))
+		feedbackID, err := strconv.Atoi(ctx.Param("id"))
+
+		if err != nil {
+			return ctx.JSON(400, helper.Response(err.Error()))
 		}
 
 		feedback := ctl.service.FindByID(feedbackID)
@@ -131,24 +132,42 @@ func (ctl *controller) UpdateFeedback() echo.HandlerFunc {
 		}
 		
 		ctx.Bind(&input)
-
 		validate = validator.New(validator.WithRequiredStructEnabled())
-		err := validate.Struct(input)
-
-		if err != nil {
+		if err := validate.Struct(input); err != nil {
 			errMap := helpers.ErrorMapValidation(err)
 			return ctx.JSON(400, helper.Response("Missing Data Required!", map[string]any {
 				"error": errMap,
 			}))
 		}
 
-		update := ctl.service.Modify(input, feedbackID)
+		if authorization == "" {
+			return ctx.JSON(401, helper.Response("Missing Token for Authorization!"))
+		}
 
-		if !update {
+		token := authorization[len("Bearer "):]
+		claims := utils.ExtractToken(token)
+
+		if claims == nil {
+			return ctx.JSON(401, helpers.Response("Invalid Token Given!"))
+		}
+
+		userID := int(claims["user-id"].(float64))
+		if role := claims["role"]; role == "member" {
+			return ctx.JSON(401, helpers.Response("Role is not Recognized for this Feature!"))
+		}
+
+		input.StaffID = userID 
+
+		staffReply := ctl.service.AddAReply(input, feedbackID)
+
+		if staffReply == nil {
 			return ctx.JSON(500, helper.Response("Something Went Wrong!"))
 		}
 
-		return ctx.JSON(200, helper.Response("Feedback Success Updated!"))
+		
+		return ctx.JSON(200, helper.Response("Feedback Success Updated!", map[string]any {
+			"data": feedback,
+		}))
 	}
 }
 
