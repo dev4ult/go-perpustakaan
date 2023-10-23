@@ -8,7 +8,6 @@ import (
 	"perpustakaan/features/author"
 	"perpustakaan/features/author/dtos"
 
-	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 )
 
@@ -156,10 +155,8 @@ func (ctl *controller) CreateAnAuthorship() echo.HandlerFunc {
 	return func (ctx echo.Context) error  {
 		input := dtos.InputAuthorshipIDS{}
 		ctx.Bind(&input)
-
-		validate = validator.New(validator.WithRequiredStructEnabled())
 		
-		if err := validate.Struct(input); err != nil {
+		if err := helpers.ValidateRequest(input); err != nil {
 			errMap := helpers.ErrorMapValidation(err)
 			return ctx.JSON(400, helper.Response("Missing Data Required!", map[string]any {
 				"error": errMap,

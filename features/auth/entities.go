@@ -13,5 +13,7 @@ type Librarian struct {
 	NIK int `gorm:"type:varchar(16)"`
 	PhoneNumber string `gorm:"type:varchar(20)"`
 	Address string `gorm:"text"`
+	Email string `gorm:"type:varchar(255)"`
+	Password string `gorm:"type:varchar(255)"`
 }
 

@@ -39,12 +39,14 @@ func (ctl *controller) Login() echo.HandlerFunc {
 		}
 
 		isLibrarian := false
+		credential := input.CredentialNumber
 
 		if input.StaffID != "" {
 			isLibrarian = true
+			credential = input.StaffID
 		}
 
-		authorization := ctl.service.VerifyLogin(input.CredentialNumber, input.Password, isLibrarian)
+		authorization := ctl.service.VerifyLogin(credential, input.Password, isLibrarian)
 
 		if authorization == nil {
 			return ctx.JSON(404, helper.Response("Your credential or password does not Match!"))
@@ -52,6 +54,37 @@ func (ctl *controller) Login() echo.HandlerFunc {
 		
 		return ctx.JSON(200, helper.Response("Success Login!", map[string]any {
 			"data": authorization,
+		}))
+	}
+}
+
+func (ctl *controller) StaffRegistration() echo.HandlerFunc {
+	return func(ctx echo.Context) error {
+		var input dtos.InputStaffRegistration
+
+		ctx.Bind(&input)
+
+		if err := helpers.ValidateRequest(input); err != nil {
+			errMap := helpers.ErrorMapValidation(err)
+			return ctx.JSON(400, helpers.Response("Missing Data Required!", map[string]any {
+				"errors": errMap,
+			}))
+		}
+
+		librarian := ctl.service.FindLibrarianByStaffID(input.StaffID)
+		
+		if librarian != nil {
+			return ctx.JSON(409, helpers.Response("Staff ID already Registered!"))
+		}
+
+		resLibrarian := ctl.service.RegisterAStaff(input)
+
+		if resLibrarian == nil {
+			return ctx.JSON(500, helpers.Response("Something Went Wrong"))
+		}
+
+		return ctx.JSON(200, helpers.Response("test", map[string]any {
+			"data": resLibrarian,
 		}))
 	}
 }

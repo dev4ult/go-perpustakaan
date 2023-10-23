@@ -97,7 +97,6 @@ func (mdl *model) SelectByID(feedbackID int) *dtos.ResFeedback {
 	return &resFeedback
 }
 
-
 func (mdl *model) InsertReplyForAFeedback(reply feedback.FeedbackReply) *dtos.StaffReply {
 	result := mdl.db.Create(&reply)
 

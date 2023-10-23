@@ -1,6 +1,7 @@
 package feedback
 
 import (
+	"perpustakaan/features/auth"
 	"perpustakaan/features/member"
 
 	"gorm.io/gorm"
@@ -26,4 +27,5 @@ type FeedbackReply struct {
 	FeedbackID int `gorm:"type:int(11)"`
 
 	Feedback Feedback
+	Librarian auth.Librarian
 }

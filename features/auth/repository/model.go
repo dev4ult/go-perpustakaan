@@ -42,6 +42,17 @@ func (mdl *model) SelectMemberByCredentialNumber(credentialNumber string) *membe
 	return &user
 }
 
+func (mdl *model) InsertNewLibrarian(newLibrarian auth.Librarian) *auth.Librarian {
+	result := mdl.db.Create(&newLibrarian)
+
+	if result.Error != nil {
+		log.Error(result.Error.Error())
+		return nil
+	}
+
+	return &newLibrarian
+}
+
 // func (mdl *model) Paginate(page, size int) []auth.Auth {
 // 	var auths []auth.Auth
 

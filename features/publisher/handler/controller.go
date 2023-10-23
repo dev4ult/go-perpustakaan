@@ -8,7 +8,6 @@ import (
 	"perpustakaan/features/publisher"
 	"perpustakaan/features/publisher/dtos"
 
-	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 )
 
@@ -21,8 +20,6 @@ func New(service publisher.Usecase) publisher.Handler {
 		service: service,
 	}
 }
-
-var validate *validator.Validate
 
 func (ctl *controller) GetPublishers() echo.HandlerFunc {
 	return func (ctx echo.Context) error  {
@@ -75,11 +72,7 @@ func (ctl *controller) CreatePublisher() echo.HandlerFunc {
 
 		ctx.Bind(&input)
 
-		validate = validator.New(validator.WithRequiredStructEnabled())
-
-		err := validate.Struct(input)
-
-		if err != nil {
+		if err := helpers.ValidateRequest(input); err != nil {
 			errMap := helpers.ErrorMapValidation(err)
 			return ctx.JSON(400, helper.Response("Missing Data Required!", map[string]any {
 				"error": errMap,
@@ -115,11 +108,8 @@ func (ctl *controller) UpdatePublisher() echo.HandlerFunc {
 		}
 		
 		ctx.Bind(&input)
-
-		validate = validator.New(validator.WithRequiredStructEnabled())
-		err := validate.Struct(input)
-
-		if err != nil {
+		
+		if err := helpers.ValidateRequest(input); err != nil {
 			errMap := helpers.ErrorMapValidation(err)
 			return ctx.JSON(400, helper.Response("Missing Data Required!", map[string]any {
 				"error": errMap,

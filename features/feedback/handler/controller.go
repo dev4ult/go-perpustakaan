@@ -3,13 +3,11 @@ package handler
 import (
 	"perpustakaan/helpers"
 	helper "perpustakaan/helpers"
-	"perpustakaan/utils"
 	"strconv"
 
 	"perpustakaan/features/feedback"
 	"perpustakaan/features/feedback/dtos"
 
-	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
 )
 
@@ -22,8 +20,6 @@ func New(service feedback.Usecase) feedback.Handler {
 		service: service,
 	}
 }
-
-var validate *validator.Validate
 
 func (ctl *controller) GetFeedbacks() echo.HandlerFunc {
 	return func (ctx echo.Context) error  {
@@ -75,10 +71,8 @@ func (ctl *controller) CreateFeedback() echo.HandlerFunc {
 		input := dtos.InputFeedback{}
 
 		ctx.Bind(&input)
-		validate = validator.New(validator.WithRequiredStructEnabled())
-		err := validate.Struct(input)
 
-		if err != nil {
+		if err := helpers.ValidateRequest(input); err != nil {
 			errMap := helpers.ErrorMapValidation(err)
 			return ctx.JSON(400, helper.Response("Missing Data Required!", map[string]any {
 				"errors": errMap,
@@ -87,7 +81,7 @@ func (ctl *controller) CreateFeedback() echo.HandlerFunc {
 
 		if authorization != "" {
 			token := authorization[len("Bearer "):]
-			claims := utils.ExtractToken(token)
+			claims := helpers.ExtractToken(token)
 
 			if claims == nil {
 				return ctx.JSON(401, helpers.Response("Invalid Token Given!"))
@@ -132,8 +126,8 @@ func (ctl *controller) ReplyOnFeedback() echo.HandlerFunc {
 		}
 		
 		ctx.Bind(&input)
-		validate = validator.New(validator.WithRequiredStructEnabled())
-		if err := validate.Struct(input); err != nil {
+		
+		if err := helpers.ValidateRequest(input); err != nil {
 			errMap := helpers.ErrorMapValidation(err)
 			return ctx.JSON(400, helper.Response("Missing Data Required!", map[string]any {
 				"error": errMap,
@@ -145,7 +139,7 @@ func (ctl *controller) ReplyOnFeedback() echo.HandlerFunc {
 		}
 
 		token := authorization[len("Bearer "):]
-		claims := utils.ExtractToken(token)
+		claims := helpers.ExtractToken(token)
 
 		if claims == nil {
 			return ctx.JSON(401, helpers.Response("Invalid Token Given!"))
@@ -163,10 +157,9 @@ func (ctl *controller) ReplyOnFeedback() echo.HandlerFunc {
 		if staffReply == nil {
 			return ctx.JSON(500, helper.Response("Something Went Wrong!"))
 		}
-
 		
 		return ctx.JSON(200, helper.Response("Feedback Success Updated!", map[string]any {
-			"data": feedback,
+			"data": staffReply,
 		}))
 	}
 }
