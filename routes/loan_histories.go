@@ -6,7 +6,7 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func LoanHistorys(e *echo.Echo, handler loan_history.Handler) {
+func LoanHistories(e *echo.Echo, handler loan_history.Handler) {
 	loanHistorys := e.Group("/loan_histories")
 
 	loanHistorys.GET("", handler.GetLoanHistorys())
