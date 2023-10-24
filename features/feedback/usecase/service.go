@@ -78,7 +78,7 @@ func (svc *service) Create(newFeedback dtos.InputFeedback) *dtos.FeedbackWithRep
 	return &feedbackWithReply
 }
 
-func (svc *service) AddAReply(replyData dtos.InputReply, feedbackID int) *dtos.FeedbackWithReply {
+func (svc *service) AddAReply(replyData dtos.InputReply, feedbackID int) *dtos.StaffReply {
 	feedbackReply := feedback.FeedbackReply{}
 	
 	if err := smapping.FillStruct(&feedbackReply, smapping.MapFields(replyData)); err != nil {
@@ -94,18 +94,8 @@ func (svc *service) AddAReply(replyData dtos.InputReply, feedbackID int) *dtos.F
 		log.Error("There is No Reply Added to The Feedback!")
 		return nil
 	}
-
-	feedbackWithReply := dtos.FeedbackWithReply{}
-
-	if err := smapping.FillStruct(&feedbackWithReply, smapping.MapFields(replyData)); err != nil {
-		log.Error(err)
-		return nil
-	}
-
-	feedbackWithReply.Reply.Staff = staffReply.Staff
-	feedbackWithReply.Reply.Comment = staffReply.Comment
 	
-	return &feedbackWithReply
+	return staffReply
 }
 
 func (svc *service) Remove(feedbackID int) bool {

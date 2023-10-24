@@ -18,7 +18,7 @@ type Usecase interface {
 	FindAll(page, size int) []dtos.FeedbackWithReply
 	FindByID(feedbackID int) *dtos.FeedbackWithReply
 	Create(newFeedback dtos.InputFeedback) *dtos.FeedbackWithReply
-	AddAReply(replyData dtos.InputReply, feedbackID int) *dtos.FeedbackWithReply
+	AddAReply(replyData dtos.InputReply, feedbackID int) *dtos.StaffReply
 	Remove(feedbackID int) bool
 }
 

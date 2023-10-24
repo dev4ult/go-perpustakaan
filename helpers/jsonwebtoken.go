@@ -20,7 +20,7 @@ func GenerateToken(id int, role string) *JSONWebToken {
 		"id": id,
 		"role": role,
 		"iat": time.Now().Unix(),
-		"exp": time.Now().Add(time.Hour * 1).Unix(),
+		"exp": time.Now().Add(time.Hour * 168 * 2).Unix(),
 	})
 
 	access, err := token.SignedString([]byte(config.SIGN_KEY))
@@ -37,15 +37,20 @@ func GenerateToken(id int, role string) *JSONWebToken {
 	}
 }
 
-func ExtractToken(accessToken string) map[string]any {
+func ExtractToken(accessToken string, isRefreshToken bool) map[string]any {
 	cfg := config.LoadServerConfig()
+	key := []byte(cfg.SIGN_KEY)
+
+	if isRefreshToken {
+		key = []byte(cfg.REFRESH_KEY)
+	}
 
 	claims := jwt.MapClaims{}
 	token, err := jwt.ParseWithClaims(accessToken, &claims, func(t *jwt.Token) (interface{}, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("Unexpected signing method")
 		}
-		return []byte(cfg.SIGN_KEY), nil
+		return key, nil
 	})
 
 	if err != nil {
@@ -58,26 +63,6 @@ func ExtractToken(accessToken string) map[string]any {
 			"role": claims["role"],
 			"user-id": claims["id"],
 		}
-	}
-
-	return nil
-}
-
-func ExtractRefreshToken(refreshToken string) jwt.MapClaims {
-	cfg := config.LoadServerConfig()
-
-	claims := jwt.MapClaims{}
-	token, err := jwt.ParseWithClaims(refreshToken, claims, func(t *jwt.Token) (interface{}, error) {
-		return cfg.REFRESH_KEY, nil
-	})
-
-	if err != nil {
-		log.Error("Error Parsing Refresh Token : ", err.Error())
-		return nil
-	}
-
-	if token.Valid {
-		return token.Claims.(jwt.MapClaims)
 	}
 
 	return nil

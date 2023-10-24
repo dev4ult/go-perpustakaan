@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"perpustakaan/helpers"
 	helper "perpustakaan/helpers"
 	"strconv"
 
@@ -67,12 +66,8 @@ func (ctl *controller) FeedbackDetails() echo.HandlerFunc {
 
 func (ctl *controller) CreateFeedback() echo.HandlerFunc {
 	return func (ctx echo.Context) error  {
-		authorization := ctx.Request().Header.Get("Authorization")
 		input := ctx.Get("request").(*dtos.InputFeedback)
-
-		token := authorization[len("Bearer "):]
-		claims := helpers.ExtractToken(token)
-		userID := int(claims["user-id"].(float64))
+		userID := int(ctx.Get("user-id").(float64))
 
 		input.MemberID = &userID 
 
@@ -90,7 +85,6 @@ func (ctl *controller) CreateFeedback() echo.HandlerFunc {
 
 func (ctl *controller) ReplyOnFeedback() echo.HandlerFunc {
 	return func (ctx echo.Context) error {
-		authorization := ctx.Request().Header.Get("Authorization")
 		input := ctx.Get("request").(*dtos.InputReply)
 
 		feedbackID, err := strconv.Atoi(ctx.Param("id"))
@@ -104,22 +98,12 @@ func (ctl *controller) ReplyOnFeedback() echo.HandlerFunc {
 		if feedback == nil {
 			return ctx.JSON(404, helper.Response("Feedback Not Found!"))
 		}
-
-		if authorization == "" {
-			return ctx.JSON(401, helper.Response("Missing Token for Authorization!"))
+		
+		if feedback.Reply.Staff != "" {
+			return ctx.JSON(409, helper.Response("Feedback Already has A Reply!"))
 		}
 
-		token := authorization[len("Bearer "):]
-		claims := helpers.ExtractToken(token)
-
-		if claims == nil {
-			return ctx.JSON(401, helpers.Response("Invalid Token Given!"))
-		}
-
-		userID := int(claims["user-id"].(float64))
-		if role := claims["role"]; role == "member" {
-			return ctx.JSON(401, helpers.Response("Role is not Recognized for this Feature!"))
-		}
+		userID := int(ctx.Get("user-id").(float64))
 
 		input.StaffID = userID 
 
@@ -128,9 +112,12 @@ func (ctl *controller) ReplyOnFeedback() echo.HandlerFunc {
 		if staffReply == nil {
 			return ctx.JSON(500, helper.Response("Something Went Wrong!"))
 		}
+
+		feedback.Reply.Staff = staffReply.Staff
+		feedback.Reply.Comment = staffReply.Comment
 		
 		return ctx.JSON(200, helper.Response("Feedback Success Updated!", map[string]any {
-			"data": staffReply,
+			"data": feedback,
 		}))
 	}
 }
