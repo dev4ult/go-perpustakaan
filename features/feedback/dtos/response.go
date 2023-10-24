@@ -6,11 +6,19 @@ type ResFeedback struct {
 	PriorityStatus 	string `json:"priority-status"`
 }
 
-type FeedbackWithReply struct {
+type FeedbackJoinReply struct {
 	Member			string `json:"member"`
 	Comment 		string `json:"comment"`
 	PriorityStatus 	string `json:"priority-status"`
-	Reply 			StaffReply
+	Staff			string `json:"staff"`	
+	Reply 			string `json:"reply"`
+}
+
+type FeedbackWithReply struct {
+	Member			string 		`json:"member"`
+	Comment 		string 		`json:"comment"`
+	PriorityStatus 	string 		`json:"priority-status"`
+	Reply 			StaffReply 	`json:"reply"`
 }
 
 type StaffReply struct {

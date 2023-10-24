@@ -68,34 +68,15 @@ func (ctl *controller) FeedbackDetails() echo.HandlerFunc {
 func (ctl *controller) CreateFeedback() echo.HandlerFunc {
 	return func (ctx echo.Context) error  {
 		authorization := ctx.Request().Header.Get("Authorization")
-		input := dtos.InputFeedback{}
+		input := ctx.Get("request").(*dtos.InputFeedback)
 
-		ctx.Bind(&input)
+		token := authorization[len("Bearer "):]
+		claims := helpers.ExtractToken(token)
+		userID := int(claims["user-id"].(float64))
 
-		if err := helpers.ValidateRequest(input); err != nil {
-			errMap := helpers.ErrorMapValidation(err)
-			return ctx.JSON(400, helper.Response("Missing Data Required!", map[string]any {
-				"errors": errMap,
-			}))
-		}
+		input.MemberID = &userID 
 
-		if authorization != "" {
-			token := authorization[len("Bearer "):]
-			claims := helpers.ExtractToken(token)
-
-			if claims == nil {
-				return ctx.JSON(401, helpers.Response("Invalid Token Given!"))
-			}
-
-			userID := int(claims["user-id"].(float64))
-			if role := claims["role"]; role == "librarian" {
-				return ctx.JSON(401, helpers.Response("Member Only Authorization!"))
-			}
-
-			input.MemberID = &userID 
-		}
-
-		feedback := ctl.service.Create(input)
+		feedback := ctl.service.Create(*input)
 
 		if feedback == nil {
 			return ctx.JSON(500, helper.Response("Something Went Wrong!", nil))
@@ -110,8 +91,7 @@ func (ctl *controller) CreateFeedback() echo.HandlerFunc {
 func (ctl *controller) ReplyOnFeedback() echo.HandlerFunc {
 	return func (ctx echo.Context) error {
 		authorization := ctx.Request().Header.Get("Authorization")
-
-		input := dtos.InputReply{}
+		input := ctx.Get("request").(*dtos.InputReply)
 
 		feedbackID, err := strconv.Atoi(ctx.Param("id"))
 
@@ -123,15 +103,6 @@ func (ctl *controller) ReplyOnFeedback() echo.HandlerFunc {
 
 		if feedback == nil {
 			return ctx.JSON(404, helper.Response("Feedback Not Found!"))
-		}
-		
-		ctx.Bind(&input)
-		
-		if err := helpers.ValidateRequest(input); err != nil {
-			errMap := helpers.ErrorMapValidation(err)
-			return ctx.JSON(400, helper.Response("Missing Data Required!", map[string]any {
-				"error": errMap,
-			}))
 		}
 
 		if authorization == "" {
@@ -152,7 +123,7 @@ func (ctl *controller) ReplyOnFeedback() echo.HandlerFunc {
 
 		input.StaffID = userID 
 
-		staffReply := ctl.service.AddAReply(input, feedbackID)
+		staffReply := ctl.service.AddAReply(*input, feedbackID)
 
 		if staffReply == nil {
 			return ctx.JSON(500, helper.Response("Something Went Wrong!"))

@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"perpustakaan/helpers"
 	helper "perpustakaan/helpers"
 	"strconv"
 
@@ -69,18 +68,9 @@ func (ctl *controller) AuthorDetails() echo.HandlerFunc {
 
 func (ctl *controller) CreateAuthor() echo.HandlerFunc {
 	return func (ctx echo.Context) error  {
-		input := dtos.InputAuthor{}
+		input := ctx.Get("request").(*dtos.InputAuthor)
 
-		ctx.Bind(&input)
-
-		if err := helpers.ValidateRequest(input); err != nil {
-			errMap := helpers.ErrorMapValidation(err)
-			return ctx.JSON(400, helper.Response("Missing Data Required!", map[string]any {
-				"error": errMap,
-			}))
-		}
-
-		author := ctl.service.Create(input)
+		author := ctl.service.Create((*input))
 
 		if author == nil {
 			return ctx.JSON(500, helper.Response("Something went Wrong!", nil))
@@ -94,7 +84,7 @@ func (ctl *controller) CreateAuthor() echo.HandlerFunc {
 
 func (ctl *controller) UpdateAuthor() echo.HandlerFunc {
 	return func (ctx echo.Context) error {
-		input := dtos.InputAuthor{}
+		input := ctx.Get("request").(*dtos.InputAuthor)
 
 		authorID, errParam := strconv.Atoi(ctx.Param("id"))
 
@@ -107,17 +97,8 @@ func (ctl *controller) UpdateAuthor() echo.HandlerFunc {
 		if author == nil {
 			return ctx.JSON(404, helper.Response("Author Not Found!"))
 		}
-		
-		ctx.Bind(&input)
 
-		if err := helpers.ValidateRequest(input); err != nil {
-			errMap := helpers.ErrorMapValidation(err)
-			return ctx.JSON(400, helper.Response("Missing Data Required!", map[string]any {
-				"error": errMap,
-			}))
-		}
-
-		update := ctl.service.Modify(input, authorID)
+		update := ctl.service.Modify(*input, authorID)
 
 		if !update {
 			return ctx.JSON(500, helper.Response("Something Went Wrong!"))
@@ -153,20 +134,12 @@ func (ctl *controller) DeleteAuthor() echo.HandlerFunc {
 
 func (ctl *controller) CreateAnAuthorship() echo.HandlerFunc {
 	return func (ctx echo.Context) error  {
-		input := dtos.InputAuthorshipIDS{}
-		ctx.Bind(&input)
-		
-		if err := helpers.ValidateRequest(input); err != nil {
-			errMap := helpers.ErrorMapValidation(err)
-			return ctx.JSON(400, helper.Response("Missing Data Required!", map[string]any {
-				"error": errMap,
-			}))
-		}
-
-		author, errString := ctl.service.SetupAuthorship(input)
+		input := ctx.Get("request").(*dtos.InputAuthorshipIDS)
+	
+		author, err := ctl.service.SetupAuthorship(*input)
 
 		if author == nil {
-			return ctx.JSON(500, helper.Response(errString))
+			return ctx.JSON(500, helper.Response(err))
 		}
 
 		return ctx.JSON(200, helper.Response("Success!", map[string]any {

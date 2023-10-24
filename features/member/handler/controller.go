@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"perpustakaan/helpers"
 	helper "perpustakaan/helpers"
 	"strconv"
 
@@ -68,18 +67,8 @@ func (ctl *controller) MemberDetails() echo.HandlerFunc {
 
 func (ctl *controller) CreateMember() echo.HandlerFunc {
 	return func (ctx echo.Context) error  {
-		input := dtos.InputMember{}
-
-		ctx.Bind(&input)
-
-		if err := helpers.ValidateRequest(input); err != nil {
-			errMap := helpers.ErrorMapValidation(err)
-			return ctx.JSON(400, helper.Response("Missing Data Required!", map[string]any {
-				"error": errMap,
-			}))
-		}
-
-		member := ctl.service.Create(input)
+		input := ctx.Get("request").(*dtos.InputMember)
+		member := ctl.service.Create(*input)
 
 		if member == nil {
 			return ctx.JSON(500, helper.Response("Something went Wrong!", nil))
@@ -93,7 +82,7 @@ func (ctl *controller) CreateMember() echo.HandlerFunc {
 
 func (ctl *controller) UpdateMember() echo.HandlerFunc {
 	return func (ctx echo.Context) error {
-		input := dtos.InputMember{}
+		input := ctx.Get("request").(*dtos.InputMember)
 
 		memberID, errParam := strconv.Atoi(ctx.Param("id"))
 
@@ -107,16 +96,7 @@ func (ctl *controller) UpdateMember() echo.HandlerFunc {
 			return ctx.JSON(404, helper.Response("Member Not Found!"))
 		}
 		
-		ctx.Bind(&input)
-
-		if err := helpers.ValidateRequest(input); err != nil {
-			errMap := helpers.ErrorMapValidation(err)
-			return ctx.JSON(400, helper.Response("Missing Data Required!", map[string]any {
-				"error": errMap,
-			}))
-		}
-
-		update := ctl.service.Modify(input, memberID)
+		update := ctl.service.Modify(*input, memberID)
 
 		if !update {
 			return ctx.JSON(500, helper.Response("Something Went Wrong!"))

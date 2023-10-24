@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"perpustakaan/helpers"
 	helper "perpustakaan/helpers"
 	"strconv"
 
@@ -33,7 +32,7 @@ func (ctl *controller) GetLoanHistorys() echo.HandlerFunc {
 		size := pagination.Size
 
 		if page <= 0 || size <= 0 {
-			return ctx.JSON(400, helper.Response("Please provide query `page` and `size` in number!"))
+			return ctx.JSON(400, helper.Response("Param must be provided in number!"))
 		}
 
 		loanHistorys := ctl.service.FindAll(page, size)
@@ -54,7 +53,7 @@ func (ctl *controller) LoanHistoryDetails() echo.HandlerFunc {
 		loanHistoryID, err := strconv.Atoi(ctx.Param("id"))
 
 		if err != nil {
-			return ctx.JSON(400, helper.Response(err.Error()))
+			return ctx.JSON(400, helper.Response("Param must be provided in number!"))
 		}
 
 		loanHistory := ctl.service.FindByID(loanHistoryID)
@@ -71,22 +70,9 @@ func (ctl *controller) LoanHistoryDetails() echo.HandlerFunc {
 
 func (ctl *controller) CreateLoanHistory() echo.HandlerFunc {
 	return func (ctx echo.Context) error  {
-		input := dtos.InputLoanHistory{}
+		input := ctx.Get("request").(*dtos.InputLoanHistory)
 
-		ctx.Bind(&input)
-
-		validate = validator.New(validator.WithRequiredStructEnabled())
-
-		err := validate.Struct(input)
-
-		if err != nil {
-			errMap := helpers.ErrorMapValidation(err)
-			return ctx.JSON(400, helper.Response("Bad Request!", map[string]any {
-				"error": errMap,
-			}))
-		}
-
-		loanHistory := ctl.service.Create(input)
+		loanHistory := ctl.service.Create(*input)
 
 		if loanHistory == nil {
 			return ctx.JSON(500, helper.Response("Something went Wrong!", nil))
@@ -100,8 +86,7 @@ func (ctl *controller) CreateLoanHistory() echo.HandlerFunc {
 
 func (ctl *controller) UpdateLoanHistory() echo.HandlerFunc {
 	return func (ctx echo.Context) error {
-		input := dtos.InputLoanHistory{}
-
+		input := ctx.Get("request").(*dtos.InputLoanHistory)
 		loanHistoryID, errParam := strconv.Atoi(ctx.Param("id"))
 
 		if errParam != nil {
@@ -114,19 +99,7 @@ func (ctl *controller) UpdateLoanHistory() echo.HandlerFunc {
 			return ctx.JSON(404, helper.Response("LoanHistory Not Found!"))
 		}
 		
-		ctx.Bind(&input)
-
-		validate = validator.New(validator.WithRequiredStructEnabled())
-		err := validate.Struct(input)
-
-		if err != nil {
-			errMap := helpers.ErrorMapValidation(err)
-			return ctx.JSON(400, helper.Response("Bad Request!", map[string]any {
-				"error": errMap,
-			}))
-		}
-
-		update := ctl.service.Modify(input, loanHistoryID)
+		update := ctl.service.Modify(*input, loanHistoryID)
 
 		if !update {
 			return ctx.JSON(500, helper.Response("Something Went Wrong!"))
@@ -141,7 +114,7 @@ func (ctl *controller) DeleteLoanHistory() echo.HandlerFunc {
 		loanHistoryID, err := strconv.Atoi(ctx.Param("id"))
 
 		if err != nil {
-			return ctx.JSON(400, helper.Response(err.Error()))
+			return ctx.JSON(400, helper.Response("Param must be provided in number!"))
 		}
 
 		loanHistory := ctl.service.FindByID(loanHistoryID)

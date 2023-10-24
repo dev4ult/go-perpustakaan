@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"perpustakaan/helpers"
 	helper "perpustakaan/helpers"
 	"strconv"
 
@@ -68,18 +67,9 @@ func (ctl *controller) PublisherDetails() echo.HandlerFunc {
 
 func (ctl *controller) CreatePublisher() echo.HandlerFunc {
 	return func (ctx echo.Context) error  {
-		input := dtos.InputPublisher{}
+		input := ctx.Get("request").(*dtos.InputPublisher)
 
-		ctx.Bind(&input)
-
-		if err := helpers.ValidateRequest(input); err != nil {
-			errMap := helpers.ErrorMapValidation(err)
-			return ctx.JSON(400, helper.Response("Missing Data Required!", map[string]any {
-				"error": errMap,
-			}))
-		}
-
-		publisher := ctl.service.Create(input)
+		publisher := ctl.service.Create(*input)
 
 		if publisher == nil {
 			return ctx.JSON(500, helper.Response("Something went Wrong!", nil))
@@ -93,12 +83,12 @@ func (ctl *controller) CreatePublisher() echo.HandlerFunc {
 
 func (ctl *controller) UpdatePublisher() echo.HandlerFunc {
 	return func (ctx echo.Context) error {
-		input := dtos.InputPublisher{}
+		input := ctx.Get("request").(*dtos.InputPublisher)
 
-		publisherID, errParam := strconv.Atoi(ctx.Param("id"))
+		publisherID, err := strconv.Atoi(ctx.Param("id"))
 
-		if errParam != nil {
-			return ctx.JSON(400, helper.Response(errParam.Error()))
+		if err != nil {
+			return ctx.JSON(400, helper.Response(err.Error()))
 		}
 
 		publisher := ctl.service.FindByID(publisherID)
@@ -107,16 +97,7 @@ func (ctl *controller) UpdatePublisher() echo.HandlerFunc {
 			return ctx.JSON(404, helper.Response("Publisher Not Found!"))
 		}
 		
-		ctx.Bind(&input)
-		
-		if err := helpers.ValidateRequest(input); err != nil {
-			errMap := helpers.ErrorMapValidation(err)
-			return ctx.JSON(400, helper.Response("Missing Data Required!", map[string]any {
-				"error": errMap,
-			}))
-		}
-
-		update := ctl.service.Modify(input, publisherID)
+		update := ctl.service.Modify(*input, publisherID)
 
 		if !update {
 			return ctx.JSON(500, helper.Response("Something Went Wrong!"))

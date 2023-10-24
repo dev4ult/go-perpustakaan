@@ -19,13 +19,30 @@ func New(model feedback.Repository) feedback.Usecase {
 	}
 }
 
-func (svc *service) FindAll(page, size int) []dtos.ResFeedback {
+func (svc *service) FindAll(page, size int) []dtos.FeedbackWithReply {
 	feedbacks := svc.model.Paginate(page, size)
 
-	return feedbacks
+	var feedbackWithReply []dtos.FeedbackWithReply 
+	for _, feedback := range feedbacks {
+		if feedback.Member == "" {
+			feedback.Member = "Anonymous"
+		}
+		
+		feedbackWithReply = append(feedbackWithReply, dtos.FeedbackWithReply{
+			Member: feedback.Member,
+			Comment: feedback.Comment,
+			PriorityStatus: feedback.PriorityStatus,
+			Reply: dtos.StaffReply{
+				Staff: feedback.Staff,
+				Comment: feedback.Reply,
+			},
+		})
+	}
+
+	return feedbackWithReply
 }
 
-func (svc *service) FindByID(feedbackID int) *dtos.ResFeedback {
+func (svc *service) FindByID(feedbackID int) *dtos.FeedbackWithReply {
 	feedback := svc.model.SelectByID(feedbackID)
 
 	if feedback == nil {
@@ -36,24 +53,29 @@ func (svc *service) FindByID(feedbackID int) *dtos.ResFeedback {
 	return feedback
 }
 
-func (svc *service) Create(newFeedback dtos.InputFeedback) *dtos.ResFeedback {
+func (svc *service) Create(newFeedback dtos.InputFeedback) *dtos.FeedbackWithReply {
 	feedback := feedback.Feedback{}
 	
-	err := smapping.FillStruct(&feedback, smapping.MapFields(newFeedback))
-	if err != nil {
-		log.Error(err)
+	if err := smapping.FillStruct(&feedback, smapping.MapFields(newFeedback)); err != nil {
+		log.Error(err.Error())
 		return nil
 	}
 	
 	feedback.PriorityStatus = helpers.GetPrediction(newFeedback.Comment)
 
-	fb := svc.model.Insert(feedback)
-
-	if fb == nil {
+	resFeedback := svc.model.Insert(feedback)
+	if resFeedback == nil {
 		return nil
 	}
 
-	return fb
+	feedbackWithReply := dtos.FeedbackWithReply{}
+
+	if err := smapping.FillStruct(&feedbackWithReply, smapping.MapFields(resFeedback)); err != nil {
+		log.Error(err.Error())
+		return nil
+	}
+
+	return &feedbackWithReply
 }
 
 func (svc *service) AddAReply(replyData dtos.InputReply, feedbackID int) *dtos.FeedbackWithReply {

@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"perpustakaan/helpers"
 	helper "perpustakaan/helpers"
 	"strconv"
 
@@ -71,22 +70,9 @@ func (ctl *controller) PlaceholderDetails() echo.HandlerFunc {
 
 func (ctl *controller) CreatePlaceholder() echo.HandlerFunc {
 	return func (ctx echo.Context) error  {
-		input := dtos.InputPlaceholder{}
+		input := ctx.Get("request").(*dtos.InputPlaceholder)
 
-		ctx.Bind(&input)
-
-		validate = validator.New(validator.WithRequiredStructEnabled())
-
-		err := validate.Struct(input)
-
-		if err != nil {
-			errMap := helpers.ErrorMapValidation(err)
-			return ctx.JSON(400, helper.Response("Missing Data Required!", map[string]any {
-				"error": errMap,
-			}))
-		}
-
-		placeholder := ctl.service.Create(input)
+		placeholder := ctl.service.Create(*input)
 
 		if placeholder == nil {
 			return ctx.JSON(500, helper.Response("Something went Wrong!", nil))
@@ -100,8 +86,7 @@ func (ctl *controller) CreatePlaceholder() echo.HandlerFunc {
 
 func (ctl *controller) UpdatePlaceholder() echo.HandlerFunc {
 	return func (ctx echo.Context) error {
-		input := dtos.InputPlaceholder{}
-
+		input := ctx.Get("request").(*dtos.InputPlaceholder)
 		placeholderID, errParam := strconv.Atoi(ctx.Param("id"))
 
 		if errParam != nil {
@@ -114,19 +99,7 @@ func (ctl *controller) UpdatePlaceholder() echo.HandlerFunc {
 			return ctx.JSON(404, helper.Response("Placeholder Not Found!"))
 		}
 		
-		ctx.Bind(&input)
-
-		validate = validator.New(validator.WithRequiredStructEnabled())
-		err := validate.Struct(input)
-
-		if err != nil {
-			errMap := helpers.ErrorMapValidation(err)
-			return ctx.JSON(400, helper.Response("Missing Data Required!", map[string]any {
-				"error": errMap,
-			}))
-		}
-
-		update := ctl.service.Modify(input, placeholderID)
+		update := ctl.service.Modify(*input, placeholderID)
 
 		if !update {
 			return ctx.JSON(500, helper.Response("Something Went Wrong!"))
