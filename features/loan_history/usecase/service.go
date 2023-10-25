@@ -19,66 +19,38 @@ func New(model loan_history.Repository) loan_history.Usecase {
 }
 
 func (svc *service) FindAll(page, size int) []dtos.ResLoanHistory {
-	var loanHistorys []dtos.ResLoanHistory
+	loanHistories := svc.model.Paginate(page, size)
 
-	loanHistorysEnt := svc.model.Paginate(page, size)
-
-	for _, loanHistory := range loanHistorysEnt {
-		var data dtos.ResLoanHistory
-
-		if err := smapping.FillStruct(&data, smapping.MapFields(loanHistory)); err != nil {
-			log.Error(err.Error())
-		} 
-		
-		loanHistorys = append(loanHistorys, data)
-	}
-
-	return loanHistorys
+	return loanHistories
 }
 
 func (svc *service) FindByID(loanHistoryID int) *dtos.ResLoanHistory {
-	res := dtos.ResLoanHistory{}
 	loanHistory := svc.model.SelectByID(loanHistoryID)
 
 	if loanHistory == nil {
 		return nil
 	}
 
-	err := smapping.FillStruct(&res, smapping.MapFields(loanHistory))
-	if err != nil {
-		log.Error(err)
-		return nil
-	}
-
-	return &res
+	return loanHistory
 }
 
 func (svc *service) Create(newLoanHistory dtos.InputLoanHistory) *dtos.ResLoanHistory {
 	loanHistory := loan_history.LoanHistory{}
-	
-	err := smapping.FillStruct(&loanHistory, smapping.MapFields(newLoanHistory))
-	if err != nil {
+	if err := smapping.FillStruct(&loanHistory, smapping.MapFields(newLoanHistory)); err != nil {
 		log.Error(err)
 		return nil
 	}
 
-	loanHistoryID := svc.model.Insert(loanHistory)
-
-	if loanHistoryID == -1 {
+	loanHistory.LoanStatusID = 1
+	resLoanHistory := svc.model.Insert(loanHistory)
+	if resLoanHistory == nil {
 		return nil
 	}
 
-	resLoanHistory := dtos.ResLoanHistory{}
-	errRes := smapping.FillStruct(&resLoanHistory, smapping.MapFields(newLoanHistory))
-	if errRes != nil {
-		log.Error(errRes)
-		return nil
-	}
-
-	return &resLoanHistory
+	return resLoanHistory
 }
 
-func (svc *service) Modify(loanHistoryData dtos.InputLoanHistory, loanHistoryID int) bool {
+func (svc *service) Modify(loanHistoryData dtos.UpdateLoanHistory, loanHistoryID int) bool {
 	newLoanHistory := loan_history.LoanHistory{}
 
 	err := smapping.FillStruct(&newLoanHistory, smapping.MapFields(loanHistoryData))
@@ -91,7 +63,18 @@ func (svc *service) Modify(loanHistoryData dtos.InputLoanHistory, loanHistoryID 
 	rowsAffected := svc.model.Update(newLoanHistory)
 
 	if rowsAffected <= 0 {
-		log.Error("There is No LoanHistory Updated!")
+		log.Error("There is No Loan History Updated!")
+		return false
+	}
+	
+	return true
+}
+
+func (svc *service) ModifyStatus(status, loanHistoryID int) bool {
+	rowsAffected := svc.model.UpdateStatus(status, loanHistoryID)
+
+	if rowsAffected <= 0 {
+		log.Error("There is No Loan Status Updated!")
 		return false
 	}
 	
@@ -102,7 +85,7 @@ func (svc *service) Remove(loanHistoryID int) bool {
 	rowsAffected := svc.model.DeleteByID(loanHistoryID)
 
 	if rowsAffected <= 0 {
-		log.Error("There is No LoanHistory Deleted!")
+		log.Error("There is No Loan History Deleted!")
 		return false
 	}
 

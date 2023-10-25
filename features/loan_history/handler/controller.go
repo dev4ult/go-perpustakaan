@@ -23,7 +23,7 @@ func New(service loan_history.Usecase) loan_history.Handler {
 
 var validate *validator.Validate
 
-func (ctl *controller) GetLoanHistorys() echo.HandlerFunc {
+func (ctl *controller) GetLoanHistories() echo.HandlerFunc {
 	return func (ctx echo.Context) error  {
 		pagination := dtos.Pagination{}
 		ctx.Bind(&pagination)
@@ -35,14 +35,14 @@ func (ctl *controller) GetLoanHistorys() echo.HandlerFunc {
 			return ctx.JSON(400, helper.Response("Param must be provided in number!"))
 		}
 
-		loanHistorys := ctl.service.FindAll(page, size)
+		loanHistories := ctl.service.FindAll(page, size)
 
-		if loanHistorys == nil {
-			return ctx.JSON(404, helper.Response("There is No LoanHistorys!"))
+		if len(loanHistories) == 0 {
+			return ctx.JSON(404, helper.Response("There is No Loan Histories!"))
 		}
 
 		return ctx.JSON(200, helper.Response("Success!", map[string]any {
-			"data": loanHistorys,
+			"data": loanHistories,
 		}))
 	}
 }
@@ -59,7 +59,7 @@ func (ctl *controller) LoanHistoryDetails() echo.HandlerFunc {
 		loanHistory := ctl.service.FindByID(loanHistoryID)
 
 		if loanHistory == nil {
-			return ctx.JSON(404, helper.Response("LoanHistory Not Found!"))
+			return ctx.JSON(404, helper.Response("Loan History Not Found!"))
 		}
 
 		return ctx.JSON(200, helper.Response("Success!", map[string]any {
@@ -75,7 +75,7 @@ func (ctl *controller) CreateLoanHistory() echo.HandlerFunc {
 		loanHistory := ctl.service.Create(*input)
 
 		if loanHistory == nil {
-			return ctx.JSON(500, helper.Response("Something went Wrong!", nil))
+			return ctx.JSON(500, helper.Response("Something Went Wrong!", nil))
 		}
 
 		return ctx.JSON(200, helper.Response("Success!", map[string]any {
@@ -86,7 +86,7 @@ func (ctl *controller) CreateLoanHistory() echo.HandlerFunc {
 
 func (ctl *controller) UpdateLoanHistory() echo.HandlerFunc {
 	return func (ctx echo.Context) error {
-		input := ctx.Get("request").(*dtos.InputLoanHistory)
+		input := ctx.Get("request").(*dtos.UpdateLoanHistory)
 		loanHistoryID, errParam := strconv.Atoi(ctx.Param("id"))
 
 		if errParam != nil {
@@ -96,7 +96,7 @@ func (ctl *controller) UpdateLoanHistory() echo.HandlerFunc {
 		loanHistory := ctl.service.FindByID(loanHistoryID)
 
 		if loanHistory == nil {
-			return ctx.JSON(404, helper.Response("LoanHistory Not Found!"))
+			return ctx.JSON(404, helper.Response("Loan History Not Found!"))
 		}
 		
 		update := ctl.service.Modify(*input, loanHistoryID)
@@ -105,7 +105,32 @@ func (ctl *controller) UpdateLoanHistory() echo.HandlerFunc {
 			return ctx.JSON(500, helper.Response("Something Went Wrong!"))
 		}
 
-		return ctx.JSON(200, helper.Response("LoanHistory Success Updated!"))
+		return ctx.JSON(200, helper.Response("Loan History Success Updated!"))
+	}
+}
+
+func (ctl *controller) UpdateLoanStatus() echo.HandlerFunc {
+	return func (ctx echo.Context) error {
+		input := ctx.Get("request").(*dtos.LoanStatus)
+		loanHistoryID, errParam := strconv.Atoi(ctx.Param("id"))
+
+		if errParam != nil {
+			return ctx.JSON(400, helper.Response(errParam.Error()))
+		}
+
+		loanHistory := ctl.service.FindByID(loanHistoryID)
+
+		if loanHistory == nil {
+			return ctx.JSON(404, helper.Response("Loan History Not Found!"))
+		}
+		
+		patch := ctl.service.ModifyStatus(input.Status, loanHistoryID)
+
+		if !patch {
+			return ctx.JSON(500, helper.Response("Something Went Wrong!"))
+		}
+
+		return ctx.JSON(200, helper.Response("Loan Status Success Updated!"))
 	}
 }
 
@@ -120,7 +145,7 @@ func (ctl *controller) DeleteLoanHistory() echo.HandlerFunc {
 		loanHistory := ctl.service.FindByID(loanHistoryID)
 
 		if loanHistory == nil {
-			return ctx.JSON(404, helper.Response("LoanHistory Not Found!"))
+			return ctx.JSON(404, helper.Response("Loan History Not Found!"))
 		}
 
 		delete := ctl.service.Remove(loanHistoryID)
@@ -129,6 +154,6 @@ func (ctl *controller) DeleteLoanHistory() echo.HandlerFunc {
 			return ctx.JSON(500, helper.Response("Something Went Wrong!"))
 		}
 
-		return ctx.JSON(200, helper.Response("LoanHistory Success Deleted!", nil))
+		return ctx.JSON(200, helper.Response("Loan History Success Deleted!", nil))
 	}
 }

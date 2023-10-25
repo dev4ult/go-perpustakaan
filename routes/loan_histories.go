@@ -2,17 +2,21 @@ package routes
 
 import (
 	"perpustakaan/features/loan_history"
+	"perpustakaan/features/loan_history/dtos"
+	m "perpustakaan/middlewares"
 
 	"github.com/labstack/echo/v4"
 )
 
 func LoanHistories(e *echo.Echo, handler loan_history.Handler) {
-	loanHistorys := e.Group("/loan_histories")
+	loanHistories := e.Group("/loan-histories")
+	loanHistories.Use(m.Authorization("librarian"))
 
-	loanHistorys.GET("", handler.GetLoanHistorys())
-	loanHistorys.POST("", handler.CreateLoanHistory())
+	loanHistories.GET("", handler.GetLoanHistories())
+	loanHistories.POST("", handler.CreateLoanHistory(), m.RequestValidation(dtos.InputLoanHistory{}))
 	
-	loanHistorys.GET("/:id", handler.LoanHistoryDetails())
-	loanHistorys.PUT("/:id", handler.UpdateLoanHistory())
-	loanHistorys.DELETE("/:id", handler.DeleteLoanHistory())
+	loanHistories.GET("/:id", handler.LoanHistoryDetails())
+	loanHistories.PUT("/:id", handler.UpdateLoanHistory(), m.RequestValidation(dtos.UpdateLoanHistory{}))
+	loanHistories.PATCH("/:id", handler.UpdateLoanStatus(), m.RequestValidation(dtos.LoanStatus{}))
+	loanHistories.DELETE("/:id", handler.DeleteLoanHistory())
 }
