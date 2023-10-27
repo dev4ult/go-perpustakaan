@@ -41,6 +41,11 @@ import (
 	lr "perpustakaan/features/loan_history/repository"
 	lu "perpustakaan/features/loan_history/usecase"
 
+	"perpustakaan/features/transaction"
+	th "perpustakaan/features/transaction/handler"
+	tr "perpustakaan/features/transaction/repository"
+	tu "perpustakaan/features/transaction/usecase"
+
 	"github.com/labstack/echo/v4"
 )
 
@@ -56,6 +61,7 @@ func main() {
 	routes.Authors(e, AuthorHandler())
 	routes.Feedbacks(e, FeedbackHandler())
 	routes.LoanHistories(e, LoanHistoryHandler())
+	routes.Transactions(e, TransactionHandler())
 	
 	e.Logger.Fatal(e.Start(fmt.Sprintf(":%d", cfg.SERVER_PORT)))
 }
@@ -107,4 +113,11 @@ func LoanHistoryHandler() loan_history.Handler {
 	repo := lr.New(db)
 	uc := lu.New(repo)
 	return lh.New(uc)
+}
+
+func TransactionHandler() transaction.Handler {
+	db := utils.InitDB()
+	repo := tr.New(db)
+	uc := tu.New(repo)
+	return th.New(uc)
 }
