@@ -21,6 +21,7 @@ type ServerConfig struct {
 	CLOUD_URL string
 	REFRESH_KEY string
 	HGF_TOKEN string
+	MT_SERVER_KEY string
 }
 
 func LoadDBConfig() DatabaseConfig {
@@ -56,6 +57,7 @@ func LoadServerConfig() ServerConfig {
 		CLOUD_URL: os.Getenv("CLOUDINARY_URL"),
 		REFRESH_KEY: os.Getenv("REFRESH_KEY"),
 		HGF_TOKEN: os.Getenv("HGF_TOKEN"),
+		MT_SERVER_KEY: os.Getenv("MT_SERVER_KEY"),
 	}
 }
 
