@@ -72,10 +72,10 @@ func (ctl *controller) CreateTransaction() echo.HandlerFunc {
 	return func (ctx echo.Context) error  {
 		input := ctx.Get("request").(*dtos.InputTransaction)
 
-		transaction := ctl.service.Create(*input)
+		transaction, errMessage := ctl.service.Create(*input)
 
 		if transaction == nil {
-			return ctx.JSON(500, helper.Response("Something went Wrong!", nil))
+			return ctx.JSON(500, helper.Response(errMessage))
 		}
 
 		return ctx.JSON(200, helper.Response("Success!", map[string]any {

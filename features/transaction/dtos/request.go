@@ -1,7 +1,9 @@
 package dtos
 
 type InputTransaction struct {
-	Name string `json:"name" form:"name" validate:"required"`
+	Note string `json:"note" form:"note"`
+	MemberID int `json:"member-id" form:"member-id" validate:"required"`
+	LoanIDS []int `json:"loan-ids" form:"loan-ids"`
 }
 
 type Pagination struct {

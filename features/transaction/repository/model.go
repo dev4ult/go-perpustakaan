@@ -1,7 +1,9 @@
 package repository
 
 import (
+	"perpustakaan/features/member"
 	"perpustakaan/features/transaction"
+	"perpustakaan/features/transaction/dtos"
 
 	"github.com/labstack/gommon/log"
 	"gorm.io/gorm"
@@ -74,4 +76,65 @@ func (mdl *model) DeleteByID(transactionID int) int64 {
 	}
 
 	return result.RowsAffected
+}
+
+func (mdl *model) UpdateBatchTransactionDetail(items []dtos.FineItem, transactionID int64) bool {
+	for _, item := range items {
+		if result := mdl.db.Table("loan_histories").Where("id = ?", item.ID).Update("transaction_id", transactionID); result.Error != nil {
+			return false
+		}
+	}
+
+
+	return true
+}
+
+func (mdl *model) SelectAllLoanHistoryOnMemberID(memberID int) []dtos.FineItem {
+	var loanHistory = []dtos.FineItem{} 
+
+	if result := mdl.db.Table("loan_histories").
+	Select("loan_histories.id, fine_types.status, books.title as name, fine_types.fine_cost as amount").
+	Where("loan_histories.member_id = ?", memberID).
+	Where("fine_types.fine_cost IS NOT NULL").
+	Where("loan_histories.transaction_id IS NULL").
+	Where("loan_histories.deleted_at IS NULL").
+	Joins("LEFT JOIN books ON books.id = loan_histories.book_id").
+	Joins("LEFT JOIN fine_types ON fine_types.id = loan_histories.fine_type_id").
+	Find(&loanHistory); result.Error != nil {
+		log.Error(result.Error)
+		return nil
+	}
+
+	return loanHistory
+}
+
+func (mdl *model) SelectLoanHistoryByIDAndMemberID(loanHistoryID, memberID int) *dtos.FineItem {
+	var loanHistory = dtos.FineItem{} 
+
+	if result := mdl.db.Table("loan_histories").
+	Select("loan_histories.id, fine_types.status, books.title as name, fine_types.fine_cost as amount").
+	Where("loan_histories.id = ?", loanHistoryID).
+	Where("loan_histories.member_id = ?", memberID).
+	Where("fine_types.fine_cost IS NOT NULL").
+	Where("loan_histories.transaction_id IS NULL").
+	Where("loan_histories.deleted_at IS NULL").
+	Joins("LEFT JOIN books ON books.id = loan_histories.book_id").
+	Joins("LEFT JOIN fine_types ON fine_types.id = loan_histories.fine_type_id").
+	First(&loanHistory); result.Error != nil {
+		log.Error(result.Error)
+		return nil
+	}
+
+	return &loanHistory
+}
+
+func (mdl *model) SelectMemberByID(memberID int) *member.Member {
+	var member member.Member
+	
+	if result := mdl.db.Table("members").Where("id = ?", memberID).First(&member); result.Error != nil {
+		log.Error(result.Error.Error())
+		return nil
+	}
+
+	return &member
 }
