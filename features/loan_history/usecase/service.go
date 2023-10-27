@@ -41,7 +41,7 @@ func (svc *service) Create(newLoanHistory dtos.InputLoanHistory) *dtos.ResLoanHi
 		return nil
 	}
 
-	loanHistory.LoanStatusID = 1
+	loanHistory.FineTypeID = 1
 	resLoanHistory := svc.model.Insert(loanHistory)
 	if resLoanHistory == nil {
 		return nil
@@ -50,7 +50,7 @@ func (svc *service) Create(newLoanHistory dtos.InputLoanHistory) *dtos.ResLoanHi
 	return resLoanHistory
 }
 
-func (svc *service) Modify(loanHistoryData dtos.UpdateLoanHistory, loanHistoryID int) bool {
+func (svc *service) Modify(loanHistoryData dtos.InputLoanHistory, loanHistoryID int) bool {
 	newLoanHistory := loan_history.LoanHistory{}
 
 	err := smapping.FillStruct(&newLoanHistory, smapping.MapFields(loanHistoryData))

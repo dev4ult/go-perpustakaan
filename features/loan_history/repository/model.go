@@ -23,10 +23,11 @@ func (mdl *model) Paginate(page, size int) []dtos.ResLoanHistory {
 	offset := (page - 1) * size
 	
 	if result := mdl.db.Table("loan_histories").
-	Select("loan_histories.start_to_loan_at, loan_histories.due_date, loan_statuses.name as status, members.full_name, members.credential_number, books.title, books.cover_image, books.summary").
+	Select("loan_histories.start_to_loan_at, loan_histories.due_date, fine_types.status, members.full_name, members.credential_number, books.title, books.cover_image, books.summary").
 	Joins("LEFT JOIN members ON members.id = loan_histories.member_id").
 	Joins("LEFT JOIN books ON books.id = loan_histories.book_id").
-	Joins("LEFT JOIN loan_statuses ON loan_statuses.id = loan_histories.loan_status_id").Where("loan_histories.deleted_at IS NULL").
+	Joins("LEFT JOIN fine_types ON fine_types.id = loan_histories.fine_type_id").
+	Where("loan_histories.deleted_at IS NULL").
 	Offset(offset).Limit(size).Find(&loanHistories); result.Error != nil {
 		log.Error(result.Error)
 		return nil
@@ -55,10 +56,10 @@ func (mdl *model) SelectByID(loanHistoryID int) *dtos.ResLoanHistory {
 	var loanHistory = dtos.ResLoanHistory{} 
 
 	if result := mdl.db.Table("loan_histories").
-	Select("loan_histories.start_to_loan_at, loan_histories.due_date, loan_statuses.name as status, members.full_name, members.credential_number, books.title, books.cover_image, books.summary").Where("loan_histories.id = ?", loanHistoryID).Where("loan_histories.deleted_at IS NULL").
+	Select("loan_histories.start_to_loan_at, loan_histories.due_date, fine_types.status, members.full_name, members.credential_number, books.title, books.cover_image, books.summary").Where("loan_histories.id = ?", loanHistoryID).Where("loan_histories.deleted_at IS NULL").
 	Joins("LEFT JOIN members ON members.id = loan_histories.member_id").
 	Joins("LEFT JOIN books ON books.id = loan_histories.book_id").
-	Joins("LEFT JOIN loan_statuses ON loan_statuses.id = loan_histories.loan_status_id").
+	Joins("LEFT JOIN fine_types ON fine_types.id = loan_histories.fine_type_id").
 	First(&loanHistory); result.Error != nil {
 		log.Error(result.Error)
 		return nil
@@ -78,7 +79,7 @@ func (mdl *model) Update(loanHistory loan_history.LoanHistory) int64 {
 }
 
 func (mdl *model) UpdateStatus(status, loanHistoryID int) int64 {
-	result := mdl.db.Table("loan_histories").Where("id", loanHistoryID).Update("loan_status_id", status);
+	result := mdl.db.Table("loan_histories").Where("id", loanHistoryID).Update("fine_type_id", status);
 	if result.Error != nil {
 		log.Error(result.Error)
 	}

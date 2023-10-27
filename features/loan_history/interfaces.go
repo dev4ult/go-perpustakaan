@@ -19,7 +19,7 @@ type Usecase interface {
 	FindAll(page, size int) []dtos.ResLoanHistory
 	FindByID(loanHistoryID int) *dtos.ResLoanHistory
 	Create(newLoanHistory dtos.InputLoanHistory) *dtos.ResLoanHistory
-	Modify(loanHistoryData dtos.UpdateLoanHistory, loanHistoryID int) bool
+	Modify(loanHistoryData dtos.InputLoanHistory, loanHistoryID int) bool
 	ModifyStatus(status, loanHistoryID int) bool
 	Remove(loanHistoryID int) bool
 }

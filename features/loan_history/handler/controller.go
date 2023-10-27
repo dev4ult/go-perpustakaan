@@ -86,7 +86,7 @@ func (ctl *controller) CreateLoanHistory() echo.HandlerFunc {
 
 func (ctl *controller) UpdateLoanHistory() echo.HandlerFunc {
 	return func (ctx echo.Context) error {
-		input := ctx.Get("request").(*dtos.UpdateLoanHistory)
+		input := ctx.Get("request").(*dtos.InputLoanHistory)
 		loanHistoryID, errParam := strconv.Atoi(ctx.Param("id"))
 
 		if errParam != nil {
