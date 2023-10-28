@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"perpustakaan/config"
+	m "perpustakaan/middlewares"
 	"perpustakaan/routes"
 	"perpustakaan/utils"
 
@@ -47,12 +48,17 @@ import (
 	tu "perpustakaan/features/transaction/usecase"
 
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 )
 
 
 func main() {
 	cfg := config.LoadServerConfig()
 	e := echo.New()
+
+	e.Use(m.Logger())
+	e.Use(middleware.CORS())
+	e.Pre(middleware.RemoveTrailingSlash())
 
 	routes.Auths(e, AuthHandler())
 	routes.Books(e, BookHandler())
