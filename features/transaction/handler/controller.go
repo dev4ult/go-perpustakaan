@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"encoding/json"
+	"perpustakaan/helpers"
 	helper "perpustakaan/helpers"
 	"strconv"
 
@@ -130,5 +132,23 @@ func (ctl *controller) DeleteTransaction() echo.HandlerFunc {
 		}
 
 		return ctx.JSON(200, helper.Response("Transaction Success Deleted!", nil))
+	}
+}
+
+func (ctl *controller) Notification() echo.HandlerFunc {
+	return func(ctx echo.Context) error {
+		var payload map[string]any
+
+		if err := json.NewDecoder(ctx.Request().Body).Decode(&payload); err != nil {
+			return ctx.JSON(400, helpers.Response("Error parsing data"))
+		}
+
+		verified, errMessage := ctl.service.VerifyPayment(payload)
+
+		if !verified {
+			return ctx.JSON(500, helpers.Response(errMessage))
+		}
+
+		return ctx.JSON(200, helpers.Response("Payment Verified"))
 	}
 }

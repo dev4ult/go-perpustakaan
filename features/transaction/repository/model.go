@@ -89,8 +89,8 @@ func (mdl *model) UpdateBatchTransactionDetail(items []dtos.FineItem, transactio
 	return true
 }
 
-func (mdl *model) SelectAllLoanHistoryOnMemberID(memberID int) []dtos.FineItem {
-	var loanHistory = []dtos.FineItem{} 
+func (mdl *model) SelectAllFineItemOnMemberID(memberID int) []dtos.FineItem {
+	var fineItems = []dtos.FineItem{} 
 
 	if result := mdl.db.Table("loan_histories").
 	Select("loan_histories.id, fine_types.status, books.title as name, fine_types.fine_cost as amount").
@@ -100,32 +100,51 @@ func (mdl *model) SelectAllLoanHistoryOnMemberID(memberID int) []dtos.FineItem {
 	Where("loan_histories.deleted_at IS NULL").
 	Joins("LEFT JOIN books ON books.id = loan_histories.book_id").
 	Joins("LEFT JOIN fine_types ON fine_types.id = loan_histories.fine_type_id").
-	Find(&loanHistory); result.Error != nil {
+	Find(&fineItems); result.Error != nil {
 		log.Error(result.Error)
 		return nil
 	}
 
-	return loanHistory
+	return fineItems
 }
 
-func (mdl *model) SelectLoanHistoryByIDAndMemberID(loanHistoryID, memberID int) *dtos.FineItem {
-	var loanHistory = dtos.FineItem{} 
+func (mdl *model) SelectAllFineItemOnTransactionID(transactionID int) []dtos.FineItem {
+	var fineItems = []dtos.FineItem{} 
 
 	if result := mdl.db.Table("loan_histories").
 	Select("loan_histories.id, fine_types.status, books.title as name, fine_types.fine_cost as amount").
-	Where("loan_histories.id = ?", loanHistoryID).
+	Where("loan_histories.transaction_id = ?", transactionID).
+	Where("fine_types.fine_cost IS NOT NULL").
+	Where("loan_histories.transaction_id IS NOT NULL").
+	Where("loan_histories.deleted_at IS NULL").
+	Joins("LEFT JOIN books ON books.id = loan_histories.book_id").
+	Joins("LEFT JOIN fine_types ON fine_types.id = loan_histories.fine_type_id").
+	Find(&fineItems); result.Error != nil {
+		log.Error(result.Error)
+		return nil
+	}
+
+	return fineItems
+}
+
+func (mdl *model) SelectFineItemByIDAndMemberID(fineItemID, memberID int) *dtos.FineItem {
+	var fineItem = dtos.FineItem{} 
+
+	if result := mdl.db.Table("loan_histories").
+	Select("loan_histories.id, fine_types.status, books.title as name, fine_types.fine_cost as amount").
+	Where("loan_histories.id = ?", fineItemID).
 	Where("loan_histories.member_id = ?", memberID).
 	Where("fine_types.fine_cost IS NOT NULL").
 	Where("loan_histories.transaction_id IS NULL").
 	Where("loan_histories.deleted_at IS NULL").
 	Joins("LEFT JOIN books ON books.id = loan_histories.book_id").
 	Joins("LEFT JOIN fine_types ON fine_types.id = loan_histories.fine_type_id").
-	First(&loanHistory); result.Error != nil {
+	First(&fineItem); result.Error != nil {
 		log.Error(result.Error)
 		return nil
 	}
 
-	return &loanHistory
+	return &fineItem
 }
 
 func (mdl *model) SelectMemberByID(memberID int) *member.Member {
@@ -137,4 +156,24 @@ func (mdl *model) SelectMemberByID(memberID int) *member.Member {
 	}
 
 	return &member
+}
+
+func (mdl *model) SelectTransactionByOrderID(orderID string) *transaction.Transaction {
+	var transaction transaction.Transaction
+	
+	if result := mdl.db.Where("order_id = ?", orderID).First(&transaction); result.Error != nil {
+		log.Error(result.Error.Error())
+		return nil
+	}
+
+	return &transaction
+}
+
+func (mdl *model) UpdateStatus(transactionID int, status string) bool {
+	if result := mdl.db.Table("transactions").Where("id = ?", transactionID).Update("status", status); result.Error != nil {
+		log.Error(result.Error.Error())
+		return false
+	}
+
+	return true
 }

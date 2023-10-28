@@ -2,6 +2,7 @@ package dtos
 
 type ResTransaction struct {
 	Note string `json:"note"`
+	OrderID string `json:"order-id"`
 	Status string `json:"status"`
 	PaymentURL string `json:"payment-url"`
 	Fines []FineItem `json:"fine-item" gorm:"-"`

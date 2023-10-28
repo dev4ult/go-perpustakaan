@@ -25,7 +25,28 @@ func New(model transaction.Repository) transaction.Usecase {
 	}
 }
 
-func (svc *service) VerifyPayment(payload map[string]any) {
+func (svc *service) VerifyPayment(payload map[string]any) (bool, string) {
+	orderID, exist := payload["order_id"].(string)
+	if !exist {
+		return false, "Invalid Notification!"
+	}
+
+	status, err := helpers.CheckTransaction(orderID)
+	if err != nil {
+		return false, err.Error()
+	}
+
+	transaction := svc.model.SelectTransactionByOrderID(orderID)
+	if transaction == nil {
+		return false, "Transaction Not Found!"
+	}
+
+	update := svc.model.UpdateStatus(transaction.ID, status)
+	if !update {
+		return false, "Update Transaction Status Failed!"
+	}
+
+	return true, ""
 }
 
 func (svc *service) FindAll(page, size int) []dtos.ResTransaction {
@@ -60,6 +81,9 @@ func (svc *service) FindByID(transactionID int) *dtos.ResTransaction {
 		return nil
 	}
 
+	fineItems := svc.model.SelectAllFineItemOnTransactionID(transactionID)
+	res.Fines = fineItems
+
 	return &res
 }
 
@@ -74,7 +98,7 @@ func (svc *service) Create(newTransaction dtos.InputTransaction) (*dtos.ResTrans
 
 	if len(newTransaction.LoanIDS) > 0 {
 		for _, loanID := range newTransaction.LoanIDS {
-			loanHistory := svc.model.SelectLoanHistoryByIDAndMemberID(loanID, newTransaction.MemberID) 
+			loanHistory := svc.model.SelectFineItemByIDAndMemberID(loanID, newTransaction.MemberID) 
 
 			if loanHistory == nil {
 				return nil, "Unknown Loan History for this Member or Loan Status might not already be Changed from Checked-Out or On-Hold!"
@@ -82,7 +106,7 @@ func (svc *service) Create(newTransaction dtos.InputTransaction) (*dtos.ResTrans
 			fineItems = append(fineItems, *loanHistory)
 		}
 	} else {
-		fineItems = svc.model.SelectAllLoanHistoryOnMemberID(newTransaction.MemberID)
+		fineItems = svc.model.SelectAllFineItemOnMemberID(newTransaction.MemberID)
 
 		if fineItems == nil || len(fineItems) == 0 {
 			return nil, "Member does not have any Fines yet!"

@@ -14,9 +14,12 @@ type Repository interface {
 	Update(transaction Transaction) int64
 	DeleteByID(transactionID int) int64
 	UpdateBatchTransactionDetail(items []dtos.FineItem, transactionID int64) bool
-	SelectAllLoanHistoryOnMemberID(memberID int) []dtos.FineItem
-	SelectLoanHistoryByIDAndMemberID(loanHistoryID, memberID int) *dtos.FineItem
+	SelectAllFineItemOnMemberID(memberID int) []dtos.FineItem
+	SelectAllFineItemOnTransactionID(TransactionID int) []dtos.FineItem
+	SelectFineItemByIDAndMemberID(fineItemID, memberID int) *dtos.FineItem
 	SelectMemberByID(memberID int) *member.Member
+	SelectTransactionByOrderID(orderID string) *Transaction
+	UpdateStatus(transactionID int, status string) bool
 }
 
 type Usecase interface {
@@ -25,7 +28,7 @@ type Usecase interface {
 	Create(newTransaction dtos.InputTransaction) (*dtos.ResTransaction, string)
 	Modify(transactionData dtos.InputTransaction, transactionID int) bool
 	Remove(transactionID int) bool
-	VerifyPayment(payload map[string]any)
+	VerifyPayment(payload map[string]any) (bool, string)
 }
 
 type Handler interface {
@@ -34,4 +37,5 @@ type Handler interface {
 	CreateTransaction() echo.HandlerFunc
 	UpdateTransaction() echo.HandlerFunc
 	DeleteTransaction() echo.HandlerFunc
+	Notification() echo.HandlerFunc
 }
