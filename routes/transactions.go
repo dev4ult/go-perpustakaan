@@ -18,4 +18,7 @@ func Transactions(e *echo.Echo, handler transaction.Handler) {
 	transactions.GET("/:id", handler.TransactionDetails())
 	transactions.PUT("/:id", handler.UpdateTransaction(), m.RequestValidation(dtos.InputTransaction{}))
 	transactions.DELETE("/:id", handler.DeleteTransaction())
+
+	notification := e.Group("/notification")
+	notification.POST("", handler.Notification())
 }
