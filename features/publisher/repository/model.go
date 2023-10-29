@@ -16,12 +16,13 @@ func New(db *gorm.DB) publisher.Repository {
 	}
 }
 
-func (mdl *model) Paginate(page, size int) ([]publisher.Publisher, error) {
+func (mdl *model) Paginate(page int, size int, searchKey string) ([]publisher.Publisher, error) {
 	var publishers []publisher.Publisher
 
 	offset := (page - 1) * size
+	name := "%" + searchKey + "%"
 
-	if err := mdl.db.Offset(offset).Limit(size).Find(&publishers).Error; err != nil {
+	if err := mdl.db.Where("name LIKE ?", name).Offset(offset).Limit(size).Find(&publishers).Error; err != nil {
 		return nil, err
 	}
 

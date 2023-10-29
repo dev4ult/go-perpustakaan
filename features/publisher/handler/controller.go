@@ -27,12 +27,14 @@ func (ctl *controller) GetPublishers() echo.HandlerFunc {
 		
 		page := pagination.Page
 		size := pagination.Size
+		searchKey := ctx.QueryParam("name")
 
-		if page <= 0 || size <= 0 {
-			return ctx.JSON(400, helper.Response("Param must be provided in number!"))
+		if size == 0 {
+			page = 1
+			size = 10
 		}
 
-		publishers, message := ctl.service.FindAll(page, size)
+		publishers, message := ctl.service.FindAll(page, size, searchKey)
 		
 		if message != "" {
 			return ctx.JSON(500, helper.Response(message))
