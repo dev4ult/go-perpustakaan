@@ -1,7 +1,6 @@
 package middlewares
 
 import (
-	"fmt"
 	"perpustakaan/helpers"
 	"reflect"
 
@@ -13,12 +12,17 @@ func RequestValidation(request any) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(ctx echo.Context) error {
 			requestType := reflect.TypeOf(request)
+			if requestType.Kind() != reflect.Struct {
+				return ctx.JSON(400, "Invalid request data format")
+			}
 			newRequest := reflect.New(requestType).Interface()
-			validate := validator.New()
 
 			if err := ctx.Bind(&newRequest); err != nil {
-				return ctx.JSON(500, helpers.Response(fmt.Sprintf("Error Binding Request : %s", err.Error())))
+				errorMap := helpers.ParseError(err.Error())
+				return ctx.JSON(errorMap["code"].(int), helpers.Response(errorMap["message"].(string)))
 			}
+
+			validate := validator.New()
 
 			if err := validate.Struct(newRequest); err != nil {
 				var errMap = []map[string]string{} 
