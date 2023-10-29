@@ -1,0 +1,25 @@
+mode: set
+perpustakaan/features/book/usecase/service.go:16.46,20.2 1 1
+perpustakaan/features/book/usecase/service.go:22.92,25.16 2 1
+perpustakaan/features/book/usecase/service.go:25.16,27.3 1 1
+perpustakaan/features/book/usecase/service.go:29.2,29.18 1 1
+perpustakaan/features/book/usecase/service.go:32.66,35.16 2 1
+perpustakaan/features/book/usecase/service.go:35.16,37.3 1 1
+perpustakaan/features/book/usecase/service.go:39.2,39.17 1 1
+perpustakaan/features/book/usecase/service.go:42.106,45.80 2 1
+perpustakaan/features/book/usecase/service.go:45.80,47.3 1 0
+perpustakaan/features/book/usecase/service.go:49.2,51.16 2 1
+perpustakaan/features/book/usecase/service.go:51.16,53.3 1 1
+perpustakaan/features/book/usecase/service.go:55.2,58.22 3 1
+perpustakaan/features/book/usecase/service.go:58.22,60.3 1 1
+perpustakaan/features/book/usecase/service.go:62.2,64.90 3 1
+perpustakaan/features/book/usecase/service.go:64.90,66.3 1 0
+perpustakaan/features/book/usecase/service.go:68.2,70.28 2 1
+perpustakaan/features/book/usecase/service.go:73.80,76.84 2 1
+perpustakaan/features/book/usecase/service.go:76.84,78.3 1 0
+perpustakaan/features/book/usecase/service.go:80.2,83.16 3 1
+perpustakaan/features/book/usecase/service.go:83.16,85.3 1 1
+perpustakaan/features/book/usecase/service.go:87.2,87.17 1 1
+perpustakaan/features/book/usecase/service.go:90.55,93.16 2 1
+perpustakaan/features/book/usecase/service.go:93.16,95.3 1 1
+perpustakaan/features/book/usecase/service.go:97.2,97.17 1 1
