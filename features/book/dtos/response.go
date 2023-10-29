@@ -23,6 +23,6 @@ type AfterInsert struct {
 	Language        string `json:"language"`
 	NumberOfPages   int    `json:"number-of-pages"`
 
-	CategoryID  string `json:"category-id"`
-	PublisherID string `json:"publisher-id"`
+	CategoryID  int `json:"category-id"`
+	PublisherID int `json:"publisher-id"`
 }
