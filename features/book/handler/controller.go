@@ -1,13 +1,14 @@
 package handler
 
 import (
-	helper "perpustakaan/helpers"
+	"perpustakaan/helpers"
 	"strconv"
 
 	"perpustakaan/features/book"
 	"perpustakaan/features/book/dtos"
 
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/gommon/log"
 )
 
 type controller struct {
@@ -27,19 +28,24 @@ func (ctl *controller) GetBooks() echo.HandlerFunc {
 		
 		page := pagination.Page
 		size := pagination.Size
+		searchKey := ctx.QueryParam("title")
 
 		if page <= 0 || size <= 0 {
 			page = 1
 			size = 10
 		}
 
-		books := ctl.service.FindAll(page, size)
+		books, message := ctl.service.FindAll(page, size, searchKey)
 
-		if books == nil {
-			return ctx.JSON(404, helper.Response("There is No Books!"))
+		if len(books) == 0 {
+			return ctx.JSON(404, helpers.Response("There Is No Books!"))
 		}
 
-		return ctx.JSON(200, helper.Response("Success!", map[string]any {
+		if message != "" {
+			return ctx.JSON(500, helpers.Response(message))
+		}
+
+		return ctx.JSON(200, helpers.Response("Success!", map[string]any {
 			"data": books,
 		}))
 	}
@@ -51,16 +57,16 @@ func (ctl *controller) BookDetails() echo.HandlerFunc {
 		bookID, err := strconv.Atoi(ctx.Param("id"))
 
 		if err != nil {
-			return ctx.JSON(400, helper.Response("Param must be provided in number!"))
+			return ctx.JSON(400, helpers.Response("Param must be provided in number!"))
 		}
 
-		book := ctl.service.FindByID(bookID)
+		book, message := ctl.service.FindByID(bookID)
 
 		if book == nil {
-			return ctx.JSON(404, helper.Response("Book Not Found!"))
+			return ctx.JSON(404, helpers.Response(message))
 		}
 
-		return ctx.JSON(200, helper.Response("Success!", map[string]any {
+		return ctx.JSON(200, helpers.Response("Success!", map[string]any {
 			"data": book,
 		}))
 	}
@@ -72,22 +78,22 @@ func (ctl *controller) CreateBook() echo.HandlerFunc {
 
 		formHeader, err := ctx.FormFile("cover-img")
 		if err != nil {
-			return ctx.JSON(400, helper.Response("Missing Cover Image as `cover-img` (Required!)"))
+			return ctx.JSON(400, helpers.Response("Missing Cover Image as `cover-img` (Required!)"))
 		}
 
 		formFile, err := formHeader.Open()
 		if err != nil {
-			return ctx.JSON(500, helper.Response(err.Error()))
+			return ctx.JSON(500, helpers.Response(err.Error()))
 		}
 
-
-		book := ctl.service.Create(*input, formFile)
+		book, message := ctl.service.Create(*input, formFile)
 
 		if book == nil {
-			return ctx.JSON(500, helper.Response("Something Went Wrong!", nil))
+			log.Error(message)
+			return ctx.JSON(500, helpers.Response(message))
 		}
 
-		return ctx.JSON(201, helper.Response("Success!", map[string]any {
+		return ctx.JSON(201, helpers.Response("Success!", map[string]any {
 			"data": book,
 		}))
 	}
@@ -100,23 +106,23 @@ func (ctl *controller) UpdateBook() echo.HandlerFunc {
 		bookID, errParam := strconv.Atoi(ctx.Param("id"))
 
 		if errParam != nil {
-			return ctx.JSON(400, helper.Response("Param must be provided in number!"))
+			return ctx.JSON(400, helpers.Response("Param must be provided in number!"))
 		}
 
-		book := ctl.service.FindByID(bookID)
+		book, message := ctl.service.FindByID(bookID)
 
 		if book == nil {
-			return ctx.JSON(404, helper.Response("Book Not Found!"))
+			return ctx.JSON(404, helpers.Response(message))
 		}
 		
 
-		update := ctl.service.Modify(*input, bookID)
+		update, errMessage := ctl.service.Modify(*input, bookID)
 
 		if !update {
-			return ctx.JSON(500, helper.Response("Something Went Wrong!"))
+			return ctx.JSON(500, helpers.Response(errMessage))
 		}
 
-		return ctx.JSON(200, helper.Response("Book Success Updated!"))
+		return ctx.JSON(200, helpers.Response("Book Success Updated!"))
 	}
 }
 
@@ -125,21 +131,21 @@ func (ctl *controller) DeleteBook() echo.HandlerFunc {
 		bookID, err := strconv.Atoi(ctx.Param("id"))
 
 		if err != nil {
-			return ctx.JSON(400, helper.Response("Param must be provided in number!"))
+			return ctx.JSON(400, helpers.Response("Param must be provided in number!"))
 		}
 
-		book := ctl.service.FindByID(bookID)
+		book, message := ctl.service.FindByID(bookID)
 
 		if book == nil {
-			return ctx.JSON(404, helper.Response("Book Not Found!"))
+			return ctx.JSON(404, helpers.Response(message))
 		}
 
-		delete := ctl.service.Remove(bookID)
+		delete, errMessage := ctl.service.Remove(bookID)
 
 		if !delete {
-			return ctx.JSON(500, helper.Response("Something Went Wrong!"))
+			return ctx.JSON(500, helpers.Response(errMessage))
 		}
 
-		return ctx.JSON(200, helper.Response("Book Success Deleted!"))
+		return ctx.JSON(200, helpers.Response("Book Success Deleted!"))
 	}
 }

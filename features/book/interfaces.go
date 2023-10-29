@@ -8,19 +8,19 @@ import (
 )
 
 type Repository interface {
-	Paginate(page, size int) ([]dtos.ResBook, error)
-	Insert(newBook Book) int64
-	SelectByID(bookID int) *dtos.ResBook
-	Update(book Book) int64
-	DeleteByID(bookID int) int64
+	Paginate(page int, size int, searchKey string) ([]dtos.ResBook, error)
+	Insert(newBook Book) (int, error)
+	SelectByID(bookID int) (*dtos.ResBook, error)
+	Update(book Book) (int, error)
+	DeleteByID(bookID int) (int, error)
 }
 
 type Usecase interface {
-	FindAll(page, size int) []dtos.ResBook
-	FindByID(bookID int) *dtos.ResBook
-	Create(newBook dtos.InputBook, bookCover multipart.File) *dtos.AfterInsert
-	Modify(bookData dtos.InputBook, bookID int) bool
-	Remove(bookID int) bool
+	FindAll(page int, size int, searchKey string) ([]dtos.ResBook, string)
+	FindByID(bookID int) (*dtos.ResBook, string)
+	Create(newBook dtos.InputBook, bookCover multipart.File) (*dtos.AfterInsert, string)
+	Modify(bookData dtos.InputBook, bookID int) (bool, string)
+	Remove(bookID int) (bool, string)
 }
 
 type Handler interface {

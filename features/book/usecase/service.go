@@ -6,7 +6,6 @@ import (
 	"perpustakaan/features/book/dtos"
 	"perpustakaan/helpers"
 
-	"github.com/labstack/gommon/log"
 	"github.com/mashingan/smapping"
 )
 
@@ -20,94 +19,80 @@ func New(model book.Repository) book.Usecase {
 	}
 }
 
-func (svc *service) FindAll(page, size int) []dtos.ResBook {
-	var books, err = svc.model.Paginate(page, size)
+func (svc *service) FindAll(page int, size int, searchKey string) ([]dtos.ResBook, string) {
+	books, err := svc.model.Paginate(page, size, searchKey)
 
 	if err != nil {
-		log.Error(err.Error())
-		return nil
+		return nil, err.Error() 
 	}
 
-	return books
+	return books, ""
 }
 
-func (svc *service) FindByID(bookID int) *dtos.ResBook {
-	book := svc.model.SelectByID(bookID)
+func (svc *service) FindByID(bookID int) (*dtos.ResBook, string) {
+	book, err := svc.model.SelectByID(bookID)
 
-	if book == nil {
-		return nil
+	if err != nil {
+		return nil, err.Error()
 	}
 
-	// err := smapping.FillStruct(&res, smapping.MapFields(book))
-	// if err != nil {
-	// 	log.Error(err)
-	// 	return nil
-	// }
-
-	return book
+	return book, ""
 }
 
-func (svc *service) Create(newBook dtos.InputBook, bookCover multipart.File) *dtos.AfterInsert {
-	book := book.Book{}
+func (svc *service) Create(newBook dtos.InputBook, bookCover multipart.File) (*dtos.AfterInsert, string) {
+	var book book.Book
 	
-	err := smapping.FillStruct(&book, smapping.MapFields(newBook))
-	if err != nil {
-		log.Error(err.Error())
-		return nil
+	if err := smapping.FillStruct(&book, smapping.MapFields(newBook)); err != nil {
+		return nil, "Error Mapping DTOS Request!"
 	}
 
 	imageURL, err := helpers.UploadImage("book-cover", bookCover)
 	
 	if err != nil {
-		log.Error(err.Error())
-		return nil
+		imageURL = ""
 	}
 
 	book.CoverImage = imageURL
-	bookID := svc.model.Insert(book)
+	bookID, errInsert := svc.model.Insert(book)
 
-	if bookID == -1 {
-		return nil
+	if errInsert != nil {
+		return nil, errInsert.Error()
 	}
 
-	resAfterInsert := dtos.AfterInsert{}
-	errRes := smapping.FillStruct(&resAfterInsert, smapping.MapFields(newBook))
-	if errRes != nil {
-		log.Error(errRes)
-		return nil
+	var resAfterInsert dtos.AfterInsert
+	resAfterInsert.ID = bookID
+	if err := smapping.FillStruct(&resAfterInsert, smapping.MapFields(newBook)); err != nil {
+		return nil, "Error Mapping DTOS Response!"
 	}
+	
 	resAfterInsert.CoverImage = imageURL
 
-	return &resAfterInsert
+	return &resAfterInsert, ""
 }
 
-func (svc *service) Modify(bookData dtos.InputBook, bookID int) bool {
-	newBook := book.Book{}
-
-	err := smapping.FillStruct(&newBook, smapping.MapFields(bookData))
-	if err != nil {
-		log.Error(err)
-		return false
+func (svc *service) Modify(bookData dtos.InputBook, bookID int) (bool, string) {
+	var newBook book.Book
+	
+	if err := smapping.FillStruct(&newBook, smapping.MapFields(bookData)); err != nil {
+		return false, "Error Mapping DTOS Request!"
 	}
 
 	newBook.ID = bookID
-	rowsAffected := svc.model.Update(newBook)
+	_, err := svc.model.Update(newBook)
 
-	if rowsAffected <= 0 {
-		log.Error("There is No Book Updated!")
-		return false
+	if err != nil {
+		return false, err.Error()
 	}
 	
-	return true
+	return true, ""
 }
 
-func (svc *service) Remove(bookID int) bool {
-	rowsAffected := svc.model.DeleteByID(bookID)
+func (svc *service) Remove(bookID int) (bool, string) {
+	_, err := svc.model.DeleteByID(bookID)
 
-	if rowsAffected <= 0 {
-		log.Error("There is No Book Deleted!")
-		return false
+	if err != nil {
+		return false, err.Error()
 	}
 
-	return true
+	return true, ""
 }
