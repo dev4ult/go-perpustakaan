@@ -3,7 +3,6 @@ package usecase
 import (
 	"perpustakaan/features/member"
 	"perpustakaan/features/member/dtos"
-	"perpustakaan/helpers"
 
 	"github.com/mashingan/smapping"
 )
@@ -73,13 +72,6 @@ func (svc *service) Create(newMember dtos.InputMember) (*dtos.ResMember, string)
 	if err := smapping.FillStruct(&member, smapping.MapFields(newMember)); err != nil {
 		return nil, err.Error()
 	}
-
-	hashPassword := helpers.GenerateHash(member.Password)
-	if hashPassword == "" {
-		return nil, "Error When Hashing Password"
-	}
-
-	member.Password = hashPassword
 
 	_, err := svc.model.Insert(member)
 
