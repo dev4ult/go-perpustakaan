@@ -19,12 +19,13 @@ func New(db *gorm.DB) author.Repository {
 	}
 }
 
-func (mdl *model) Paginate(page, size int) ([]author.Author, error) {
+func (mdl *model) Paginate(page int, size int, searchKey string) ([]author.Author, error) {
 	var authors []author.Author
 
 	offset := (page - 1) * size
+	name := "%" + searchKey + "%"
 	
-	if err := mdl.db.Offset(offset).Limit(size).Find(&authors).Error; err != nil {
+	if err := mdl.db.Where("full_name LIKE ?", name).Offset(offset).Limit(size).Find(&authors).Error; err != nil {
 		return nil, err
 	}
 

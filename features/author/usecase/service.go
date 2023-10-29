@@ -18,10 +18,10 @@ func New(model author.Repository) author.Usecase {
 	}
 }
 
-func (svc *service) FindAll(page, size int) ([]dtos.ResAuthor, string) {
+func (svc *service) FindAll(page int, size int, searchKey string) ([]dtos.ResAuthor, string) {
 	var res []dtos.ResAuthor
 
-	authors, err := svc.model.Paginate(page, size)
+	authors, err := svc.model.Paginate(page, size, searchKey)
 
 	if err != nil {
 		return nil, err.Error()

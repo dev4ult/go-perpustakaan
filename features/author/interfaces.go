@@ -7,7 +7,7 @@ import (
 )
 
 type Repository interface {
-	Paginate(page, size int) ([]Author, error)
+	Paginate(page int, size int, searchKey string) ([]Author, error)
 	Insert(newAuthor Author) (int, error)
 	SelectByID(authorID int) (*Author, error)
 	Update(author Author) (int, error)
@@ -19,7 +19,7 @@ type Repository interface {
 }
 
 type Usecase interface {
-	FindAll(page, size int) ([]dtos.ResAuthor, string)
+	FindAll(page int, size int, searchKey string) ([]dtos.ResAuthor, string)
 	FindByID(authorID int) (*dtos.ResAuthor, string)
 	Create(newAuthor dtos.InputAuthor) (*dtos.ResAuthor, string)
 	Modify(authorData dtos.InputAuthor, authorID int) (bool, string)

@@ -28,13 +28,14 @@ func (ctl *controller) GetAuthors() echo.HandlerFunc {
 		
 		page := pagination.Page
 		size := pagination.Size
+		searchKey := ctx.QueryParam("name")
 
 		if page <= 0 || size <= 0 {
 			page = 1
 			size = 10
 		}
 		
-		authors, message := ctl.service.FindAll(page, size)
+		authors, message := ctl.service.FindAll(page, size, searchKey)
 		
 		if message != "" {
 			return ctx.JSON(500, helper.Response(message))
