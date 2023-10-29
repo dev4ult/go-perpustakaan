@@ -7,26 +7,26 @@ import (
 )
 
 type Repository interface {
-	Paginate(page, size int) []Author
-	Insert(newAuthor Author) int64
-	SelectByID(authorID int) *Author
-	Update(author Author) int64
-	DeleteByID(authorID int) int64
-	IsAuthorshipExist(bookID, authorID int) bool
-	SelectAuthorshipByID(authorshipID int) *Authorship
+	Paginate(page, size int) ([]Author, error)
+	Insert(newAuthor Author) (int, error)
+	SelectByID(authorID int) (*Author, error)
+	Update(author Author) (int, error)
+	DeleteByID(authorID int) (int, error)
+	IsAuthorshipExist(bookID, authorID int) (bool, error)
+	SelectAuthorshipByID(authorshipID int) (*Authorship, error)
 	InsertAuthorship(authorship dtos.InputAuthorshipIDS) (*dtos.BookAuthors, error)
-	DeleteAuthorshipByID(authorshipID int) int64
+	DeleteAuthorshipByID(authorshipID int) (int, error)
 }
 
 type Usecase interface {
-	FindAll(page, size int) []dtos.ResAuthor
-	FindByID(authorID int) *dtos.ResAuthor
-	Create(newAuthor dtos.InputAuthor) *dtos.ResAuthor
-	Modify(authorData dtos.InputAuthor, authorID int) bool
-	Remove(authorID int) bool
-	IsAuthorshipExistByID(authorshipID int) bool
+	FindAll(page, size int) ([]dtos.ResAuthor, string)
+	FindByID(authorID int) (*dtos.ResAuthor, string)
+	Create(newAuthor dtos.InputAuthor) (*dtos.ResAuthor, string)
+	Modify(authorData dtos.InputAuthor, authorID int) (bool, string)
+	Remove(authorID int) (bool, string)
+	IsAuthorshipExistByID(authorshipID int) (bool, string)
 	SetupAuthorship(anAuthorShipIDS dtos.InputAuthorshipIDS) (*dtos.BookAuthors, string)
-	RemoveAuthorship(authorshipID int) bool
+	RemoveAuthorship(authorshipID int) (bool, string)
 }
 
 type Handler interface {

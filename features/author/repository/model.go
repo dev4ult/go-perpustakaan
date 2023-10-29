@@ -5,7 +5,6 @@ import (
 	"perpustakaan/features/author/dtos"
 	"perpustakaan/features/book"
 
-	"github.com/labstack/gommon/log"
 	"github.com/mashingan/smapping"
 	"gorm.io/gorm"
 )
@@ -20,97 +19,91 @@ func New(db *gorm.DB) author.Repository {
 	}
 }
 
-func (mdl *model) Paginate(page, size int) []author.Author {
+func (mdl *model) Paginate(page, size int) ([]author.Author, error) {
 	var authors []author.Author
 
 	offset := (page - 1) * size
-
-	result := mdl.db.Offset(offset).Limit(size).Find(&authors)
 	
-	if result.Error != nil {
-		log.Error(result.Error)
-		return nil
+	if err := mdl.db.Offset(offset).Limit(size).Find(&authors).Error; err != nil {
+		return nil, err
 	}
 
-	return authors
+	return authors, nil
 }
 
-func (mdl *model) Insert(newAuthor author.Author) int64 {
-	result := mdl.db.Create(&newAuthor)
-
-	if result.Error != nil {
-		log.Error(result.Error)
-		return -1
+func (mdl *model) Insert(newAuthor author.Author) (int, error) {
+	if err := mdl.db.Create(&newAuthor).Error; err != nil {
+		return 0, err
 	}
 
-	return int64(newAuthor.ID)
+	return newAuthor.ID, nil
 }
 
-func (mdl *model) SelectByID(authorID int) *author.Author {
+func (mdl *model) SelectByID(authorID int) (*author.Author, error) {
 	var author author.Author
-	result := mdl.db.First(&author, authorID)
 
-	if result.Error != nil {
-		log.Error(result.Error)
-		return nil
+	if err := mdl.db.First(&author, authorID).Error; err != nil {
+		return nil, err
 	}
 
-	return &author
+	return &author, nil
 }
 
-func (mdl *model) Update(author author.Author) int64 {
+func (mdl *model) Update(author author.Author) (int, error) {
 	result := mdl.db.Save(&author)
 
 	if result.Error != nil {
-		log.Error(result.Error)
+		return 0, result.Error
 	}
 
-	return result.RowsAffected
+	return int(result.RowsAffected), nil
 }
 
-func (mdl *model) DeleteByID(authorID int) int64 {
+func (mdl *model) DeleteByID(authorID int) (int, error) {
 	result := mdl.db.Delete(&author.Author{}, authorID)
 	
 	if result.Error != nil {
-		log.Error(result.Error)
-		return 0
+		return 0, result.Error
 	}
 
-	return result.RowsAffected
+	return int(result.RowsAffected), nil
 }
 
-func (mdl *model) SelectAuthorshipByID(authorshipID int) *author.Authorship {
+func (mdl *model) SelectAuthorshipByID(authorshipID int) (*author.Authorship, error) {
 	var authorship author.Authorship
 	
-	if result := mdl.db.Table("authorships").Where("id = ?", authorshipID).First(&authorship); result.Error != nil {
-		log.Error(result.Error.Error())
-		return nil
+	if err := mdl.db.Table("authorships").Where("id = ?", authorshipID).First(&authorship).Error; err != nil {
+		return nil, err
 	}
 
-	return &authorship
+	return &authorship, nil
 }
 
-func (mdl *model) IsAuthorshipExist(bookID, authorID int) bool {
+func (mdl *model) IsAuthorshipExist(bookID, authorID int) (bool, error) {
 	var authorship author.Authorship
-	result := mdl.db.Where("book_id = ? AND author_id = ?", bookID, authorID).First(&authorship)
+	if err := mdl.db.Where("book_id = ? AND author_id = ?", bookID, authorID).First(&authorship).Error; err != nil {
+		return false, err
+	}
 
-	return result.Error == nil
+	return true, nil
 }
 
 func (mdl *model) InsertAuthorship(authorship dtos.InputAuthorshipIDS) (*dtos.BookAuthors, error) {
 	var bookAuthors dtos.BookAuthors
 
-	result := mdl.db.Table("authorships").Create(&authorship)
-
-	if result.Error != nil {
-		return nil, result.Error
+	if err := mdl.db.Table("authorships").Create(&authorship).Error; err != nil {
+		return nil, err
 	}
 
 	var book book.Book
-	mdl.db.Table("books").Where("id = ?", authorship.BookID).First(&book)
+	if err := mdl.db.Table("books").Where("id = ?", authorship.BookID).First(&book).Error; err != nil {
+		return nil, err
+	}
 	
 	var authors []dtos.ResAuthor
-	mdl.db.Table("authorships").Select("authors.*").Where("book_id = ?", authorship.BookID).Joins("LEFT JOIN authors ON authors.id = authorships.author_id").Find(&authors)
+	if err := mdl.db.Table("authorships").Select("authors.*").Where("book_id = ?", authorship.BookID).Joins("LEFT JOIN authors ON authors.id = authorships.author_id").Find(&authors).Error; err != nil {
+		return nil, err
+	}
 	
 	if err := smapping.FillStruct(&bookAuthors, smapping.MapFields(book)); err != nil {
 		return nil, err
@@ -123,13 +116,12 @@ func (mdl *model) InsertAuthorship(authorship dtos.InputAuthorshipIDS) (*dtos.Bo
 	return &bookAuthors, nil
 }
 
-func (mdl *model) DeleteAuthorshipByID(authorshipID int) int64 {
+func (mdl *model) DeleteAuthorshipByID(authorshipID int) (int, error) {
 	result := mdl.db.Delete(&author.Authorship{}, authorshipID)
 	
 	if result.Error != nil {
-		log.Error(result.Error)
-		return 0
+		return 0, result.Error
 	}
 
-	return result.RowsAffected
+	return int(result.RowsAffected), nil
 }

@@ -30,10 +30,15 @@ func (ctl *controller) GetAuthors() echo.HandlerFunc {
 		size := pagination.Size
 
 		if page <= 0 || size <= 0 {
-			return ctx.JSON(400, helper.Response("Param must be provided in number!"))
+			page = 1
+			size = 10
 		}
-
-		authors := ctl.service.FindAll(page, size)
+		
+		authors, message := ctl.service.FindAll(page, size)
+		
+		if message != "" {
+			return ctx.JSON(500, helper.Response(message))
+		}
 
 		if authors == nil {
 			return ctx.JSON(404, helper.Response("There is No Authors!"))
@@ -54,10 +59,10 @@ func (ctl *controller) AuthorDetails() echo.HandlerFunc {
 			return ctx.JSON(400, helper.Response("Param must be provided in number!"))
 		}
 
-		author := ctl.service.FindByID(authorID)
+		author, message := ctl.service.FindByID(authorID)
 
 		if author == nil {
-			return ctx.JSON(404, helper.Response("Author Not Found!"))
+			return ctx.JSON(404, helper.Response(message))
 		}
 
 		return ctx.JSON(200, helper.Response("Success!", map[string]any {
@@ -70,10 +75,10 @@ func (ctl *controller) CreateAuthor() echo.HandlerFunc {
 	return func (ctx echo.Context) error  {
 		input := ctx.Get("request").(*dtos.InputAuthor)
 
-		author := ctl.service.Create((*input))
+		author, message := ctl.service.Create(*input)
 
 		if author == nil {
-			return ctx.JSON(500, helper.Response("Something went Wrong!", nil))
+			return ctx.JSON(500, helper.Response(message))
 		}
 
 		return ctx.JSON(200, helper.Response("Success!", map[string]any {
@@ -92,16 +97,16 @@ func (ctl *controller) UpdateAuthor() echo.HandlerFunc {
 			return ctx.JSON(400, helper.Response(errParam.Error()))
 		}
 
-		author := ctl.service.FindByID(authorID)
+		author, message := ctl.service.FindByID(authorID)
 
 		if author == nil {
-			return ctx.JSON(404, helper.Response("Author Not Found!"))
+			return ctx.JSON(404, helper.Response(message))
 		}
 
-		update := ctl.service.Modify(*input, authorID)
+		update, updateMessage := ctl.service.Modify(*input, authorID)
 
 		if !update {
-			return ctx.JSON(500, helper.Response("Something Went Wrong!"))
+			return ctx.JSON(500, helper.Response(updateMessage))
 		}
 
 		return ctx.JSON(200, helper.Response("Author Success Updated!"))
@@ -116,16 +121,16 @@ func (ctl *controller) DeleteAuthor() echo.HandlerFunc {
 			return ctx.JSON(400, helper.Response("Param must be provided in number!"))
 		}
 
-		author := ctl.service.FindByID(authorID)
+		author, message := ctl.service.FindByID(authorID)
 
 		if author == nil {
-			return ctx.JSON(404, helper.Response("Author Not Found!"))
+			return ctx.JSON(404, helper.Response(message))
 		}
 
-		delete := ctl.service.Remove(authorID)
+		delete, deleteMessage := ctl.service.Remove(authorID)
 
 		if !delete {
-			return ctx.JSON(500, helper.Response("Something Went Wrong!"))
+			return ctx.JSON(500, helper.Response(deleteMessage))
 		}
 
 		return ctx.JSON(200, helper.Response("Author Success Deleted!", nil))
@@ -156,14 +161,14 @@ func (ctl *controller) DeleteAnAuthorship() echo.HandlerFunc {
 			return ctx.JSON(400, helper.Response("Param must be provided in number!"))
 		}
 
-		if exist := ctl.service.IsAuthorshipExistByID(authorshipID); !exist {
+		if exist, _ := ctl.service.IsAuthorshipExistByID(authorshipID); !exist {
 			return ctx.JSON(404, helper.Response("Authorship Not Found!"))
 		}
 
-		delete := ctl.service.RemoveAuthorship(authorshipID)
+		delete, message := ctl.service.RemoveAuthorship(authorshipID)
 
 		if !delete {
-			return ctx.JSON(500, helper.Response("Something Went Wrong!"))
+			return ctx.JSON(500, helper.Response(message))
 		}
 
 		return ctx.JSON(200, helper.Response("Authorship Success Deleted!", nil))
