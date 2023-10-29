@@ -27,13 +27,15 @@ func (ctl *controller) GetMembers() echo.HandlerFunc {
 		
 		page := pagination.Page
 		size := pagination.Size
+		email := ctx.QueryParam("email")
+		credentialNumber := ctx.QueryParam("cred-number")
 
 		if size == 0 {
 			page = 1
 			size = 10
 		}
 
-		members, message := ctl.service.FindAll(page, size)
+		members, message := ctl.service.FindAll(page, size, email, credentialNumber)
 
 
 		if message != "" {

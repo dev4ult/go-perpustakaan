@@ -16,12 +16,14 @@ func New(db *gorm.DB) member.Repository {
 	}
 }
 
-func (mdl *model) Paginate(page, size int) ([]member.Member, error) {
+func (mdl *model) Paginate(page int, size int, email string, credentialNumber string) ([]member.Member, error) {
 	var members []member.Member
 
 	offset := (page - 1) * size
+	emailKey := "%" + email + "%" 
+	credNumberKey := "%" + credentialNumber + "%" 
 
-	if err := mdl.db.Offset(offset).Limit(size).Find(&members).Error; err != nil {
+	if err := mdl.db.Where("email LIKE ?", emailKey).Where("credential_number LIKE ?", credNumberKey).Offset(offset).Limit(size).Find(&members).Error; err != nil {
 		return nil, err
 	}
 

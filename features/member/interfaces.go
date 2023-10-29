@@ -7,19 +7,19 @@ import (
 )
 
 type Repository interface {
-	Paginate(page, size int) []Member
-	Insert(newMember Member) int64
-	SelectByID(memberID int) *Member
-	Update(member Member) int64
-	DeleteByID(memberID int) int64
+	Paginate(page int, size int, email string, credentialNumber string) ([]Member, error)
+	Insert(newMember Member) (int, error)
+	SelectByID(memberID int) (*Member, error)
+	Update(member Member) (int, error)
+	DeleteByID(memberID int) (int, error)
 }
 
 type Usecase interface {
-	FindAll(page, size int) []dtos.ResMember
-	FindByID(memberID int) *dtos.ResMember
-	Create(newMember dtos.InputMember) *dtos.ResMember
-	Modify(memberData dtos.InputMember, memberID int) bool
-	Remove(memberID int) bool
+	FindAll(page int, size int, email string, credentialNumber string) ([]dtos.ResMember, string)
+	FindByID(memberID int) (*dtos.ResMember, string)
+	Create(newMember dtos.InputMember) (*dtos.ResMember, string)
+	Modify(memberData dtos.InputMember, memberID int) (bool, string)
+	Remove(memberID int) (bool, string)
 }
 
 type Handler interface {
