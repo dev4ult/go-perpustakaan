@@ -43,7 +43,7 @@ func (svc *service) Create(newBook dtos.InputBook, bookCover multipart.File) (*d
 	var book book.Book
 	
 	if err := smapping.FillStruct(&book, smapping.MapFields(newBook)); err != nil {
-		return nil, "Error Mapping DTOS Request!"
+		return nil, err.Error()
 	}
 
 	imageURL, err := helpers.UploadImage("book-cover", bookCover)
@@ -62,7 +62,7 @@ func (svc *service) Create(newBook dtos.InputBook, bookCover multipart.File) (*d
 	var resAfterInsert dtos.AfterInsert
 	resAfterInsert.ID = bookID
 	if err := smapping.FillStruct(&resAfterInsert, smapping.MapFields(newBook)); err != nil {
-		return nil, "Error Mapping DTOS Response!"
+		return nil, err.Error()
 	}
 	
 	resAfterInsert.CoverImage = imageURL
@@ -74,7 +74,7 @@ func (svc *service) Modify(bookData dtos.InputBook, bookID int) (bool, string) {
 	var newBook book.Book
 	
 	if err := smapping.FillStruct(&newBook, smapping.MapFields(bookData)); err != nil {
-		return false, "Error Mapping DTOS Request!"
+		return false, err.Error()
 	}
 
 	newBook.ID = bookID
