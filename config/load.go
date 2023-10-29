@@ -48,7 +48,7 @@ func LoadServerConfig() ServerConfig {
 	SERVER_PORT, err := strconv.Atoi(os.Getenv("SERVER_PORT"))
 	
 	if err != nil {
-		panic(err)
+		SERVER_PORT = 8000
 	}
 
 	return ServerConfig{
