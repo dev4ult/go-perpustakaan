@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"fmt"
 	"perpustakaan/features/author"
 	"perpustakaan/features/author/dtos"
 	"time"
@@ -33,6 +34,8 @@ func (svc *service) FindAll(page int, size int, searchKey string) ([]dtos.ResAut
 		if err := smapping.FillStruct(&data, smapping.MapFields(author)); err != nil {
 			return nil, err.Error()
 		}
+
+		fmt.Println(author.DOB)
 
 		parseDate, err := time.Parse(time.RFC3339, author.DOB)
 		if err != nil {
