@@ -5,7 +5,6 @@ import (
 	"perpustakaan/features/member/dtos"
 	"perpustakaan/helpers"
 
-	"github.com/labstack/gommon/log"
 	"github.com/mashingan/smapping"
 )
 
@@ -19,100 +18,95 @@ func New(model member.Repository) member.Usecase {
 	}
 }
 
-func (svc *service) FindAll(page, size int) []dtos.ResMember {
-	var members []dtos.ResMember
+func (svc *service) FindAll(page, size int) ([]dtos.ResMember, string) {
+	var res []dtos.ResMember
 
-	membersEnt := svc.model.Paginate(page, size)
+	members, err := svc.model.Paginate(page, size)
 
-	for _, member := range membersEnt {
+	if err != nil {
+		return nil, err.Error()
+	}
+
+	for _, member := range members {
 		var data dtos.ResMember
 
 		if err := smapping.FillStruct(&data, smapping.MapFields(member)); err != nil {
-			log.Error(err.Error())
+			return nil, err.Error()
 		} 
 		
-		members = append(members, data)
+		res = append(res, data)
 	}
 
-	return members
+	return res, ""
 }
 
-func (svc *service) FindByID(memberID int) *dtos.ResMember {
-	res := dtos.ResMember{}
-	member := svc.model.SelectByID(memberID)
+func (svc *service) FindByID(memberID int) (*dtos.ResMember, string) {
+	var res dtos.ResMember
+	member, err := svc.model.SelectByID(memberID)
 
-	if member == nil {
-		return nil
-	}
-
-	err := smapping.FillStruct(&res, smapping.MapFields(member))
 	if err != nil {
-		log.Error(err)
-		return nil
+		return nil, err.Error()
 	}
-
-	return &res
-}
-
-func (svc *service) Create(newMember dtos.InputMember) *dtos.ResMember {
-	member := member.Member{}
 	
-	err := smapping.FillStruct(&member, smapping.MapFields(newMember))
-	if err != nil {
-		log.Error(err)
-		return nil
+	if err := smapping.FillStruct(&res, smapping.MapFields(member)); err != nil {
+		return nil, err.Error()
+	}
+
+	return &res, ""
+}
+
+func (svc *service) Create(newMember dtos.InputMember) (*dtos.ResMember, string) {
+	var member member.Member
+	
+	if err := smapping.FillStruct(&member, smapping.MapFields(newMember)); err != nil {
+		return nil, err.Error()
 	}
 
 	hashPassword := helpers.GenerateHash(member.Password)
 	if hashPassword == "" {
-		log.Error("Error when Hashing Password")
-		return nil
+		return nil, "Error When Hashing Password"
 	}
+
 	member.Password = hashPassword
 
-	memberID := svc.model.Insert(member)
+	_, err := svc.model.Insert(member)
 
-	if memberID == -1 {
-		return nil
+	if err != nil {
+		return nil, err.Error()
 	}
 
-	resMember := dtos.ResMember{}
-	errRes := smapping.FillStruct(&resMember, smapping.MapFields(newMember))
-	if errRes != nil {
-		log.Error(errRes)
-		return nil
+	var res dtos.ResMember
+	
+	if err := smapping.FillStruct(&res, smapping.MapFields(newMember)); err != nil {
+		return nil, err.Error()
 	}
 
-	return &resMember
+	return &res, ""
 }
 
-func (svc *service) Modify(memberData dtos.InputMember, memberID int) bool {
-	newMember := member.Member{}
-
-	err := smapping.FillStruct(&newMember, smapping.MapFields(memberData))
-	if err != nil {
-		log.Error(err)
-		return false
+func (svc *service) Modify(memberData dtos.InputMember, memberID int) (bool, string) {
+	var newMember member.Member
+	
+	if err := smapping.FillStruct(&newMember, smapping.MapFields(memberData)); err != nil {
+		return false, err.Error()
 	}
 
 	newMember.ID = memberID
-	rowsAffected := svc.model.Update(newMember)
+	_, err := svc.model.Update(newMember)
 
-	if rowsAffected <= 0 {
-		log.Error("There is No Member Updated!")
-		return false
+	if err != nil {
+		return false, err.Error()
 	}
 	
-	return true
+	return true, ""
 }
 
-func (svc *service) Remove(memberID int) bool {
-	rowsAffected := svc.model.DeleteByID(memberID)
+func (svc *service) Remove(memberID int) (bool, string) {
+	_, err := svc.model.DeleteByID(memberID)
 
-	if rowsAffected <= 0 {
-		log.Error("There is No Member Deleted!")
-		return false
+	if err != nil {
+		return false, err.Error()
 	}
 
-	return true
+	return true, ""
 }

@@ -3,7 +3,6 @@ package repository
 import (
 	"perpustakaan/features/member"
 
-	"github.com/labstack/gommon/log"
 	"gorm.io/gorm"
 )
 
@@ -17,61 +16,51 @@ func New(db *gorm.DB) member.Repository {
 	}
 }
 
-func (mdl *model) Paginate(page, size int) []member.Member {
+func (mdl *model) Paginate(page, size int) ([]member.Member, error) {
 	var members []member.Member
 
 	offset := (page - 1) * size
 
-	result := mdl.db.Offset(offset).Limit(size).Find(&members)
-	
-	if result.Error != nil {
-		log.Error(result.Error)
-		return nil
+	if err := mdl.db.Offset(offset).Limit(size).Find(&members).Error; err != nil {
+		return nil, err
 	}
 
-	return members
+	return members, nil
 }
 
-func (mdl *model) Insert(newMember member.Member) int64 {
-	result := mdl.db.Create(&newMember)
-
-	if result.Error != nil {
-		log.Error(result.Error)
-		return -1
+func (mdl *model) Insert(newMember member.Member) (int, error) {
+	if err := mdl.db.Create(&newMember).Error; err != nil {
+		return 0, err
 	}
 
-	return int64(newMember.ID)
+	return newMember.ID, nil
 }
 
-func (mdl *model) SelectByID(memberID int) *member.Member {
+func (mdl *model) SelectByID(memberID int) (*member.Member, error) {
 	var member member.Member
-	result := mdl.db.First(&member, memberID)
-
-	if result.Error != nil {
-		log.Error(result.Error)
-		return nil
+	
+	if err := mdl.db.First(&member, memberID).Error; err != nil {
+		return nil, err
 	}
 
-	return &member
+	return &member, nil
 }
 
-func (mdl *model) Update(member member.Member) int64 {
+func (mdl *model) Update(member member.Member) (int, error) {
 	result := mdl.db.Save(&member)
-
 	if result.Error != nil {
-		log.Error(result.Error)
+		return 0, result.Error
 	}
 
-	return result.RowsAffected
+	return int(result.RowsAffected), nil
 }
 
-func (mdl *model) DeleteByID(memberID int) int64 {
+func (mdl *model) DeleteByID(memberID int) (int, error) {
 	result := mdl.db.Delete(&member.Member{}, memberID)
 	
 	if result.Error != nil {
-		log.Error(result.Error)
-		return 0
+		return 0, result.Error
 	}
 
-	return result.RowsAffected
+	return int(result.RowsAffected), nil
 }
