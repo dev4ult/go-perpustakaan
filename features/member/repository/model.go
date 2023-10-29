@@ -1,7 +1,9 @@
 package repository
 
 import (
+	"errors"
 	"perpustakaan/features/member"
+	"perpustakaan/helpers"
 
 	"gorm.io/gorm"
 )
@@ -31,6 +33,13 @@ func (mdl *model) Paginate(page int, size int, email string, credentialNumber st
 }
 
 func (mdl *model) Insert(newMember member.Member) (int, error) {
+	hashPassword := helpers.GenerateHash(newMember.Password)
+	if hashPassword == "" {
+		return 0, errors.New("Error When Hashing Password")
+	}
+
+	newMember.Password = hashPassword
+	
 	if err := mdl.db.Create(&newMember).Error; err != nil {
 		return 0, err
 	}
@@ -70,6 +79,13 @@ func (mdl *model) SelectByCredentialNumber(credentialNumber string) (*member.Mem
 }
 
 func (mdl *model) Update(member member.Member) (int, error) {
+	hashPassword := helpers.GenerateHash(member.Password)
+	if hashPassword == "" {
+		return 0, errors.New("Error When Hashing Password")
+	}
+
+	member.Password = hashPassword
+
 	result := mdl.db.Save(&member)
 	if result.Error != nil {
 		return 0, result.Error
