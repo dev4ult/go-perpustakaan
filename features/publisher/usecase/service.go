@@ -4,7 +4,6 @@ import (
 	"perpustakaan/features/publisher"
 	"perpustakaan/features/publisher/dtos"
 
-	"github.com/labstack/gommon/log"
 	"github.com/mashingan/smapping"
 )
 
@@ -18,93 +17,89 @@ func New(model publisher.Repository) publisher.Usecase {
 	}
 }
 
-func (svc *service) FindAll(page, size int) []dtos.ResPublisher {
-	var publishers []dtos.ResPublisher
+func (svc *service) FindAll(page, size int) ([]dtos.ResPublisher, string) {
+	var res []dtos.ResPublisher
 
-	publishersEnt := svc.model.Paginate(page, size)
+	publishers, err := svc.model.Paginate(page, size)
 
-	for _, publisher := range publishersEnt {
+	if err != nil {
+		return nil, err.Error()
+	}
+
+	for _, publisher := range publishers {
 		var data dtos.ResPublisher
 
 		if err := smapping.FillStruct(&data, smapping.MapFields(publisher)); err != nil {
-			log.Error(err.Error())
+			return nil, err.Error()
 		} 
 		
-		publishers = append(publishers, data)
+		res = append(res, data)
 	}
 
-	return publishers
+	return res, ""
 }
 
-func (svc *service) FindByID(publisherID int) *dtos.ResPublisher {
-	res := dtos.ResPublisher{}
-	publisher := svc.model.SelectByID(publisherID)
+func (svc *service) FindByID(publisherID int) (*dtos.ResPublisher, string) {
+	var res dtos.ResPublisher
 
-	if publisher == nil {
-		return nil
-	}
+	publisher, err := svc.model.SelectByID(publisherID)
 
-	err := smapping.FillStruct(&res, smapping.MapFields(publisher))
 	if err != nil {
-		log.Error(err)
-		return nil
-	}
-
-	return &res
-}
-
-func (svc *service) Create(newPublisher dtos.InputPublisher) *dtos.ResPublisher {
-	publisher := publisher.Publisher{}
-	
-	err := smapping.FillStruct(&publisher, smapping.MapFields(newPublisher))
-	if err != nil {
-		log.Error(err)
-		return nil
-	}
-
-	publisherID := svc.model.Insert(publisher)
-
-	if publisherID == -1 {
-		return nil
-	}
-
-	resPublisher := dtos.ResPublisher{}
-	errRes := smapping.FillStruct(&resPublisher, smapping.MapFields(newPublisher))
-	if errRes != nil {
-		log.Error(errRes)
-		return nil
-	}
-
-	return &resPublisher
-}
-
-func (svc *service) Modify(publisherData dtos.InputPublisher, publisherID int) bool {
-	newPublisher := publisher.Publisher{}
-
-	err := smapping.FillStruct(&newPublisher, smapping.MapFields(publisherData))
-	if err != nil {
-		log.Error(err)
-		return false
-	}
-
-	newPublisher.ID = publisherID
-	rowsAffected := svc.model.Update(newPublisher)
-
-	if rowsAffected <= 0 {
-		log.Error("There is No Publisher Updated!")
-		return false
+		return nil, err.Error()
 	}
 	
-	return true
-}
-
-func (svc *service) Remove(publisherID int) bool {
-	rowsAffected := svc.model.DeleteByID(publisherID)
-
-	if rowsAffected <= 0 {
-		log.Error("There is No Publisher Deleted!")
-		return false
+	if err := smapping.FillStruct(&res, smapping.MapFields(publisher)); err != nil {
+		return nil, err.Error()
 	}
 
-	return true
+	return &res, ""
+}
+
+func (svc *service) Create(input dtos.InputPublisher) (*dtos.ResPublisher, string) {
+	var publisher publisher.Publisher
+	
+	if err := smapping.FillStruct(&publisher, smapping.MapFields(input)); err != nil {
+		return nil, err.Error()
+	}
+
+	_, err := svc.model.Insert(publisher)
+
+	if err != nil {
+		return nil, err.Error()
+	}
+
+	var res dtos.ResPublisher
+	
+	if err := smapping.FillStruct(&res, smapping.MapFields(publisher)); err != nil {
+		return nil, err.Error()
+	}
+
+	return &res, ""
+}
+
+func (svc *service) Modify(publisherData dtos.InputPublisher, publisherID int) (bool, string) {
+	var publisher publisher.Publisher
+	
+	if err := smapping.FillStruct(&publisher, smapping.MapFields(publisherData)); err != nil {
+		return false, err.Error()
+	}
+
+	publisher.ID = publisherID
+	_, err := svc.model.Update(publisher)
+
+	if err != nil {
+		return false, err.Error()
+	}
+	
+	return true, ""
+}
+
+func (svc *service) Remove(publisherID int) (bool, string) {
+	_, err := svc.model.DeleteByID(publisherID)
+
+	if err != nil {
+		return false, err.Error()
+	}
+
+	return true, ""
 }

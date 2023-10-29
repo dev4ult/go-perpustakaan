@@ -3,7 +3,6 @@ package repository
 import (
 	"perpustakaan/features/publisher"
 
-	"github.com/labstack/gommon/log"
 	"gorm.io/gorm"
 )
 
@@ -17,61 +16,52 @@ func New(db *gorm.DB) publisher.Repository {
 	}
 }
 
-func (mdl *model) Paginate(page, size int) []publisher.Publisher {
+func (mdl *model) Paginate(page, size int) ([]publisher.Publisher, error) {
 	var publishers []publisher.Publisher
 
 	offset := (page - 1) * size
 
-	result := mdl.db.Offset(offset).Limit(size).Find(&publishers)
-	
-	if result.Error != nil {
-		log.Error(result.Error)
-		return nil
+	if err := mdl.db.Offset(offset).Limit(size).Find(&publishers).Error; err != nil {
+		return nil, err
 	}
 
-	return publishers
+	return publishers, nil
 }
 
-func (mdl *model) Insert(newPublisher publisher.Publisher) int64 {
-	result := mdl.db.Create(&newPublisher)
-
-	if result.Error != nil {
-		log.Error(result.Error)
-		return -1
+func (mdl *model) Insert(newPublisher publisher.Publisher) (int, error) {
+	if err := mdl.db.Create(&newPublisher).Error; err != nil {
+		return 0, err
 	}
 
-	return int64(newPublisher.ID)
+	return newPublisher.ID, nil
 }
 
-func (mdl *model) SelectByID(publisherID int) *publisher.Publisher {
+func (mdl *model) SelectByID(publisherID int) (*publisher.Publisher, error) {
 	var publisher publisher.Publisher
-	result := mdl.db.First(&publisher, publisherID)
 
-	if result.Error != nil {
-		log.Error(result.Error)
-		return nil
+	if err := mdl.db.First(&publisher, publisherID).Error; err != nil {
+		return nil, err
 	}
 
-	return &publisher
+	return &publisher, nil
 }
 
-func (mdl *model) Update(publisher publisher.Publisher) int64 {
+func (mdl *model) Update(publisher publisher.Publisher) (int, error) {
 	result := mdl.db.Save(&publisher)
 
 	if result.Error != nil {
-		log.Error(result.Error)
+		return 0, result.Error
 	}
 
-	return result.RowsAffected
+	return int(result.RowsAffected), nil
 }
 
-func (mdl *model) DeleteByID(publisherID int) int64 {
+func (mdl *model) DeleteByID(publisherID int) (int, error) {
 	result := mdl.db.Delete(&publisher.Publisher{}, publisherID)
 	
 	if result.Error != nil {
-		log.Error(result.Error)
-		return 0
+		return 0, result.Error
 	}
 
-	return result.RowsAffected
+	return int(result.RowsAffected), nil
 }

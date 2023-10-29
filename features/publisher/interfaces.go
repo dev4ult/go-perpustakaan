@@ -7,19 +7,19 @@ import (
 )
 
 type Repository interface {
-	Paginate(page, size int) []Publisher
-	Insert(newPublisher Publisher) int64
-	SelectByID(publisherID int) *Publisher
-	Update(publisher Publisher) int64
-	DeleteByID(publisherID int) int64
+	Paginate(page, size int) ([]Publisher, error)
+	Insert(newPublisher Publisher) (int, error)
+	SelectByID(publisherID int) (*Publisher, error)
+	Update(publisher Publisher) (int, error)
+	DeleteByID(publisherID int) (int, error)
 }
 
 type Usecase interface {
-	FindAll(page, size int) []dtos.ResPublisher
-	FindByID(publisherID int) *dtos.ResPublisher
-	Create(newPublisher dtos.InputPublisher) *dtos.ResPublisher
-	Modify(publisherData dtos.InputPublisher, publisherID int) bool
-	Remove(publisherID int) bool
+	FindAll(page, size int) ([]dtos.ResPublisher, string)
+	FindByID(publisherID int) (*dtos.ResPublisher, string)
+	Create(newPublisher dtos.InputPublisher) (*dtos.ResPublisher, string)
+	Modify(publisherData dtos.InputPublisher, publisherID int) (bool, string)
+	Remove(publisherID int) (bool, string)
 }
 
 type Handler interface {

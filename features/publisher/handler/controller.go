@@ -32,9 +32,13 @@ func (ctl *controller) GetPublishers() echo.HandlerFunc {
 			return ctx.JSON(400, helper.Response("Param must be provided in number!"))
 		}
 
-		publishers := ctl.service.FindAll(page, size)
+		publishers, message := ctl.service.FindAll(page, size)
+		
+		if message != "" {
+			return ctx.JSON(500, helper.Response(message))
+		}
 
-		if publishers == nil {
+		if len(publishers) == 0 {
 			return ctx.JSON(404, helper.Response("There is No Publishers!"))
 		}
 
@@ -53,10 +57,10 @@ func (ctl *controller) PublisherDetails() echo.HandlerFunc {
 			return ctx.JSON(400, helper.Response("Param must be provided in number!"))
 		}
 
-		publisher := ctl.service.FindByID(publisherID)
+		publisher, message := ctl.service.FindByID(publisherID)
 
 		if publisher == nil {
-			return ctx.JSON(404, helper.Response("Publisher Not Found!"))
+			return ctx.JSON(404, helper.Response(message))
 		}
 
 		return ctx.JSON(200, helper.Response("Success!", map[string]any {
@@ -69,10 +73,10 @@ func (ctl *controller) CreatePublisher() echo.HandlerFunc {
 	return func (ctx echo.Context) error  {
 		input := ctx.Get("request").(*dtos.InputPublisher)
 
-		publisher := ctl.service.Create(*input)
+		publisher, message := ctl.service.Create(*input)
 
 		if publisher == nil {
-			return ctx.JSON(500, helper.Response("Something went Wrong!", nil))
+			return ctx.JSON(500, helper.Response(message))
 		}
 
 		return ctx.JSON(200, helper.Response("Success!", map[string]any {
@@ -91,16 +95,16 @@ func (ctl *controller) UpdatePublisher() echo.HandlerFunc {
 			return ctx.JSON(400, helper.Response(err.Error()))
 		}
 
-		publisher := ctl.service.FindByID(publisherID)
+		publisher, message := ctl.service.FindByID(publisherID)
 
 		if publisher == nil {
-			return ctx.JSON(404, helper.Response("Publisher Not Found!"))
+			return ctx.JSON(404, helper.Response(message))
 		}
 		
-		update := ctl.service.Modify(*input, publisherID)
+		update, updateMessage := ctl.service.Modify(*input, publisherID)
 
 		if !update {
-			return ctx.JSON(500, helper.Response("Something Went Wrong!"))
+			return ctx.JSON(500, helper.Response(updateMessage))
 		}
 
 		return ctx.JSON(200, helper.Response("Publisher Success Updated!"))
@@ -115,16 +119,16 @@ func (ctl *controller) DeletePublisher() echo.HandlerFunc {
 			return ctx.JSON(400, helper.Response("Param must be provided in number!"))
 		}
 
-		publisher := ctl.service.FindByID(publisherID)
+		publisher, message := ctl.service.FindByID(publisherID)
 
 		if publisher == nil {
-			return ctx.JSON(404, helper.Response("Publisher Not Found!"))
+			return ctx.JSON(404, helper.Response(message))
 		}
 
-		delete := ctl.service.Remove(publisherID)
+		delete, deleteMessage := ctl.service.Remove(publisherID)
 
 		if !delete {
-			return ctx.JSON(500, helper.Response("Something Went Wrong!"))
+			return ctx.JSON(500, helper.Response(deleteMessage))
 		}
 
 		return ctx.JSON(200, helper.Response("Publisher Success Deleted!", nil))
