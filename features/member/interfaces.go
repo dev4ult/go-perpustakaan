@@ -10,6 +10,8 @@ type Repository interface {
 	Paginate(page int, size int, email string, credentialNumber string) ([]Member, error)
 	Insert(newMember Member) (int, error)
 	SelectByID(memberID int) (*Member, error)
+	SelectByEmail(email string) (*Member, error)
+	SelectByCredentialNumber(credentialNumber string) (*Member, error)
 	Update(member Member) (int, error)
 	DeleteByID(memberID int) (int, error)
 }

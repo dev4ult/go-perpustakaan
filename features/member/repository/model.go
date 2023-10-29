@@ -48,6 +48,27 @@ func (mdl *model) SelectByID(memberID int) (*member.Member, error) {
 	return &member, nil
 }
 
+func (mdl *model) SelectByEmail(email string) (*member.Member, error) {
+	var member member.Member
+	
+	if err := mdl.db.Where("email = ?", email).First(&member).Error; err != nil {
+		return nil, err
+	}
+
+	return &member, nil
+}
+
+
+func (mdl *model) SelectByCredentialNumber(credentialNumber string) (*member.Member, error) {
+	var member member.Member
+	
+	if err := mdl.db.Where("credential_number = ?", credentialNumber).First(&member).Error; err != nil {
+		return nil, err
+	}
+
+	return &member, nil
+}
+
 func (mdl *model) Update(member member.Member) (int, error) {
 	result := mdl.db.Save(&member)
 	if result.Error != nil {

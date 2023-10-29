@@ -57,7 +57,19 @@ func (svc *service) FindByID(memberID int) (*dtos.ResMember, string) {
 
 func (svc *service) Create(newMember dtos.InputMember) (*dtos.ResMember, string) {
 	var member member.Member
+
+	memberByEmail, _ := svc.model.SelectByEmail(newMember.Email)
 	
+	if memberByEmail != nil {
+		return nil, "Email Has Already Registered!"
+	}
+
+	memberByCredentialNumber, _ := svc.model.SelectByCredentialNumber(newMember.CredentialNumber)
+	
+	if memberByCredentialNumber != nil {
+		return nil, "Credential Number Has Already Registered!"
+	}
+
 	if err := smapping.FillStruct(&member, smapping.MapFields(newMember)); err != nil {
 		return nil, err.Error()
 	}
