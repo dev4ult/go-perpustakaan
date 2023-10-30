@@ -8,26 +8,26 @@ import (
 )
 
 type Repository interface {
-	Paginate(page, size int) []Transaction
-	Insert(newTransaction Transaction) int64
-	SelectByID(transactionID int) *Transaction
-	Update(transaction Transaction) int64
-	DeleteByID(transactionID int) int64
-	UpdateBatchTransactionDetail(items []dtos.FineItem, transactionID int64) bool
-	SelectAllFineItemOnMemberID(memberID int) []dtos.FineItem
-	SelectAllFineItemOnTransactionID(TransactionID int) []dtos.FineItem
-	SelectFineItemByIDAndMemberID(fineItemID, memberID int) *dtos.FineItem
-	SelectMemberByID(memberID int) *member.Member
-	SelectTransactionByOrderID(orderID string) *Transaction
-	UpdateStatus(transactionID int, status string) bool
+	Paginate(page, size int) ([]Transaction, error)
+	Insert(newTransaction Transaction) (int, error)
+	SelectByID(transactionID int) (*Transaction, error)
+	Update(transaction Transaction) (int, error)
+	DeleteByID(transactionID int) (int, error)
+	UpdateBatchTransactionDetail(items []dtos.FineItem, transactionID int) (bool, error)
+	SelectAllFineItemOnMemberID(memberID int) ([]dtos.FineItem, error)
+	SelectAllFineItemOnTransactionID(TransactionID int) ([]dtos.FineItem, error)
+	SelectFineItemByIDAndMemberID(fineItemID, memberID int) (*dtos.FineItem, error)
+	SelectMemberByID(memberID int) (*member.Member, error)
+	SelectTransactionByOrderID(orderID string) (*Transaction, error)
+	UpdateStatus(transactionID int, status string) (bool, error)
 }
 
 type Usecase interface {
-	FindAll(page, size int) []dtos.ResTransaction
-	FindByID(transactionID int) *dtos.ResTransaction
+	FindAll(page, size int) ([]dtos.ResTransaction, string)
+	FindByID(transactionID int) (*dtos.ResTransaction, string)
 	Create(newTransaction dtos.InputTransaction) (*dtos.ResTransaction, string)
-	Modify(transactionData dtos.InputTransaction, transactionID int) bool
-	Remove(transactionID int) bool
+	Modify(transactionData dtos.InputTransaction, transactionID int) (bool, string)
+	Remove(transactionID int) (bool, string)
 	VerifyPayment(payload map[string]any) (bool, string)
 }
 

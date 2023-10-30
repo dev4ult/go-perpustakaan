@@ -37,7 +37,11 @@ func (ctl *controller) GetTransactions() echo.HandlerFunc {
 			return ctx.JSON(400, helper.Response("Param must be provided in number!"))
 		}
 
-		transactions := ctl.service.FindAll(page, size)
+		transactions, message := ctl.service.FindAll(page, size)
+
+		if message != "" {
+			return ctx.JSON(500, helper.Response(message))
+		}
 
 		if transactions == nil {
 			return ctx.JSON(404, helper.Response("There is No Transactions!"))
@@ -58,10 +62,10 @@ func (ctl *controller) TransactionDetails() echo.HandlerFunc {
 			return ctx.JSON(400, helper.Response("Param must be provided in number!"))
 		}
 
-		transaction := ctl.service.FindByID(transactionID)
+		transaction, message := ctl.service.FindByID(transactionID)
 
 		if transaction == nil {
-			return ctx.JSON(404, helper.Response("Transaction Not Found!"))
+			return ctx.JSON(404, helper.Response(message))
 		}
 
 		return ctx.JSON(200, helper.Response("Success!", map[string]any {
@@ -74,10 +78,10 @@ func (ctl *controller) CreateTransaction() echo.HandlerFunc {
 	return func (ctx echo.Context) error  {
 		input := ctx.Get("request").(*dtos.InputTransaction)
 
-		transaction, errMessage := ctl.service.Create(*input)
+		transaction, message := ctl.service.Create(*input)
 
 		if transaction == nil {
-			return ctx.JSON(500, helper.Response(errMessage))
+			return ctx.JSON(500, helper.Response(message))
 		}
 
 		return ctx.JSON(200, helper.Response("Success!", map[string]any {
@@ -95,16 +99,16 @@ func (ctl *controller) UpdateTransaction() echo.HandlerFunc {
 			return ctx.JSON(400, helper.Response(errParam.Error()))
 		}
 
-		transaction := ctl.service.FindByID(transactionID)
+		transaction, message := ctl.service.FindByID(transactionID)
 
 		if transaction == nil {
-			return ctx.JSON(404, helper.Response("Transaction Not Found!"))
+			return ctx.JSON(404, helper.Response(message))
 		}
 		
-		update := ctl.service.Modify(*input, transactionID)
+		update, updateMessage := ctl.service.Modify(*input, transactionID)
 
 		if !update {
-			return ctx.JSON(500, helper.Response("Something Went Wrong!"))
+			return ctx.JSON(500, helper.Response(updateMessage))
 		}
 
 		return ctx.JSON(200, helper.Response("Transaction Success Updated!"))
@@ -119,19 +123,19 @@ func (ctl *controller) DeleteTransaction() echo.HandlerFunc {
 			return ctx.JSON(400, helper.Response("Param must be provided in number!"))
 		}
 
-		transaction := ctl.service.FindByID(transactionID)
+		transaction, message := ctl.service.FindByID(transactionID)
 
 		if transaction == nil {
-			return ctx.JSON(404, helper.Response("Transaction Not Found!"))
+			return ctx.JSON(404, helper.Response(message))
 		}
 
-		delete := ctl.service.Remove(transactionID)
+		delete, deleteMessage := ctl.service.Remove(transactionID)
 
 		if !delete {
-			return ctx.JSON(500, helper.Response("Something Went Wrong!"))
+			return ctx.JSON(500, helper.Response(deleteMessage))
 		}
 
-		return ctx.JSON(200, helper.Response("Transaction Success Deleted!", nil))
+		return ctx.JSON(200, helper.Response("Transaction Success Deleted!"))
 	}
 }
 

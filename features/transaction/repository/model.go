@@ -5,7 +5,6 @@ import (
 	"perpustakaan/features/transaction"
 	"perpustakaan/features/transaction/dtos"
 
-	"github.com/labstack/gommon/log"
 	"gorm.io/gorm"
 )
 
@@ -19,80 +18,70 @@ func New(db *gorm.DB) transaction.Repository {
 	}
 }
 
-func (mdl *model) Paginate(page, size int) []transaction.Transaction {
+func (mdl *model) Paginate(page, size int) ([]transaction.Transaction, error) {
 	var transactions []transaction.Transaction
 
 	offset := (page - 1) * size
 
-	result := mdl.db.Offset(offset).Limit(size).Find(&transactions)
+	if err := mdl.db.Offset(offset).Limit(size).Find(&transactions).Error; err != nil {
+		return nil, err
+	}
+
+	return transactions, nil
+}
+
+func (mdl *model) Insert(newTransaction transaction.Transaction) (int, error) {
+	if err := mdl.db.Create(&newTransaction).Error; err != nil {
+		return 0, err
+	}
+
+	return newTransaction.ID, nil
+}
+
+func (mdl *model) SelectByID(transactionID int) (*transaction.Transaction, error) {
+	var transaction transaction.Transaction
+
+	if err := mdl.db.First(&transaction, transactionID).Error; err != nil {
+		return nil, err
+	}
+
+	return &transaction, nil
+}
+
+func (mdl *model) Update(transaction transaction.Transaction) (int, error) {
+	result := mdl.db.Save(&transaction)
 	
 	if result.Error != nil {
-		log.Error(result.Error)
-		return nil
+		return 0, result.Error
 	}
 
-	return transactions
+	return int(result.RowsAffected), nil
 }
 
-func (mdl *model) Insert(newTransaction transaction.Transaction) int64 {
-	result := mdl.db.Create(&newTransaction)
-
-	if result.Error != nil {
-		log.Error(result.Error)
-		return -1
-	}
-
-	return int64(newTransaction.ID)
-}
-
-func (mdl *model) SelectByID(transactionID int) *transaction.Transaction {
-	var transaction transaction.Transaction
-	result := mdl.db.First(&transaction, transactionID)
-
-	if result.Error != nil {
-		log.Error(result.Error)
-		return nil
-	}
-
-	return &transaction
-}
-
-func (mdl *model) Update(transaction transaction.Transaction) int64 {
-	result := mdl.db.Save(&transaction)
-
-	if result.Error != nil {
-		log.Error(result.Error)
-	}
-
-	return result.RowsAffected
-}
-
-func (mdl *model) DeleteByID(transactionID int) int64 {
+func (mdl *model) DeleteByID(transactionID int) (int, error) {
 	result := mdl.db.Delete(&transaction.Transaction{}, transactionID)
 	
 	if result.Error != nil {
-		log.Error(result.Error)
-		return 0
+		return 0, result.Error
 	}
 
-	return result.RowsAffected
+	return int(result.RowsAffected), nil
 }
 
-func (mdl *model) UpdateBatchTransactionDetail(items []dtos.FineItem, transactionID int64) bool {
+func (mdl *model) UpdateBatchTransactionDetail(items []dtos.FineItem, transactionID int) (bool, error) {
 	for _, item := range items {
-		if result := mdl.db.Table("loan_histories").Where("id = ?", item.ID).Update("transaction_id", transactionID); result.Error != nil {
-			return false
+		if err := mdl.db.Table("loan_histories").Where("id = ?", item.ID).Update("transaction_id", transactionID).Error; err != nil {
+			return false, err
 		}
 	}
 
-
-	return true
+	return true, nil
 }
 
-func (mdl *model) SelectAllFineItemOnMemberID(memberID int) []dtos.FineItem {
-	var fineItems = []dtos.FineItem{} 
+func (mdl *model) SelectAllFineItemOnMemberID(memberID int) ([]dtos.FineItem, error) {
+	var fineItems []dtos.FineItem
 
-	if result := mdl.db.Table("loan_histories").
+	if err := mdl.db.Table("loan_histories").
 	Select("loan_histories.id, fine_types.status, books.title as name, fine_types.fine_cost as amount").
 	Where("loan_histories.member_id = ?", memberID).
 	Where("fine_types.fine_cost IS NOT NULL").
@@ -100,18 +89,17 @@ func (mdl *model) SelectAllFineItemOnMemberID(memberID int) []dtos.FineItem {
 	Where("loan_histories.deleted_at IS NULL").
 	Joins("LEFT JOIN books ON books.id = loan_histories.book_id").
 	Joins("LEFT JOIN fine_types ON fine_types.id = loan_histories.fine_type_id").
-	Find(&fineItems); result.Error != nil {
-		log.Error(result.Error)
-		return nil
+	Find(&fineItems).Error; err != nil {
+		return nil, err
 	}
 
-	return fineItems
+	return fineItems, nil
 }
 
-func (mdl *model) SelectAllFineItemOnTransactionID(transactionID int) []dtos.FineItem {
-	var fineItems = []dtos.FineItem{} 
+func (mdl *model) SelectAllFineItemOnTransactionID(transactionID int) ([]dtos.FineItem, error) {
+	var fineItems []dtos.FineItem
 
-	if result := mdl.db.Table("loan_histories").
+	if err := mdl.db.Table("loan_histories").
 	Select("loan_histories.id, fine_types.status, books.title as name, fine_types.fine_cost as amount").
 	Where("loan_histories.transaction_id = ?", transactionID).
 	Where("fine_types.fine_cost IS NOT NULL").
@@ -119,18 +107,17 @@ func (mdl *model) SelectAllFineItemOnTransactionID(transactionID int) []dtos.Fin
 	Where("loan_histories.deleted_at IS NULL").
 	Joins("LEFT JOIN books ON books.id = loan_histories.book_id").
 	Joins("LEFT JOIN fine_types ON fine_types.id = loan_histories.fine_type_id").
-	Find(&fineItems); result.Error != nil {
-		log.Error(result.Error)
-		return nil
+	Find(&fineItems).Error; err != nil {
+		return nil, err
 	}
 
-	return fineItems
+	return fineItems, nil
 }
 
-func (mdl *model) SelectFineItemByIDAndMemberID(fineItemID, memberID int) *dtos.FineItem {
-	var fineItem = dtos.FineItem{} 
+func (mdl *model) SelectFineItemByIDAndMemberID(fineItemID, memberID int) (*dtos.FineItem, error) {
+	var fineItem dtos.FineItem
 
-	if result := mdl.db.Table("loan_histories").
+	if err := mdl.db.Table("loan_histories").
 	Select("loan_histories.id, fine_types.status, books.title as name, fine_types.fine_cost as amount").
 	Where("loan_histories.id = ?", fineItemID).
 	Where("loan_histories.member_id = ?", memberID).
@@ -139,41 +126,37 @@ func (mdl *model) SelectFineItemByIDAndMemberID(fineItemID, memberID int) *dtos.
 	Where("loan_histories.deleted_at IS NULL").
 	Joins("LEFT JOIN books ON books.id = loan_histories.book_id").
 	Joins("LEFT JOIN fine_types ON fine_types.id = loan_histories.fine_type_id").
-	First(&fineItem); result.Error != nil {
-		log.Error(result.Error)
-		return nil
+	First(&fineItem).Error; err != nil {
+		return nil, err
 	}
 
-	return &fineItem
+	return &fineItem, nil
 }
 
-func (mdl *model) SelectMemberByID(memberID int) *member.Member {
+func (mdl *model) SelectMemberByID(memberID int) (*member.Member, error) {
 	var member member.Member
 	
-	if result := mdl.db.Table("members").Where("id = ?", memberID).First(&member); result.Error != nil {
-		log.Error(result.Error.Error())
-		return nil
+	if err := mdl.db.Table("members").Where("id = ?", memberID).First(&member).Error; err != nil {
+		return nil, err
 	}
 
-	return &member
+	return &member, nil
 }
 
-func (mdl *model) SelectTransactionByOrderID(orderID string) *transaction.Transaction {
+func (mdl *model) SelectTransactionByOrderID(orderID string) (*transaction.Transaction, error) {
 	var transaction transaction.Transaction
 	
-	if result := mdl.db.Where("order_id = ?", orderID).First(&transaction); result.Error != nil {
-		log.Error(result.Error.Error())
-		return nil
+	if err := mdl.db.Where("order_id = ?", orderID).First(&transaction).Error; err != nil {
+		return nil, err
 	}
 
-	return &transaction
+	return &transaction, nil
 }
 
-func (mdl *model) UpdateStatus(transactionID int, status string) bool {
-	if result := mdl.db.Table("transactions").Where("id = ?", transactionID).Update("status", status); result.Error != nil {
-		log.Error(result.Error.Error())
-		return false
+func (mdl *model) UpdateStatus(transactionID int, status string) (bool, error) {
+	if err := mdl.db.Table("transactions").Where("id = ?", transactionID).Update("status", status).Error; err != nil {
+		return false, err
 	}
 
-	return true
+	return true, nil
 }

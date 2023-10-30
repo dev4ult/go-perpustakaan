@@ -25,88 +25,72 @@ func New(model transaction.Repository) transaction.Usecase {
 	}
 }
 
-func (svc *service) VerifyPayment(payload map[string]any) (bool, string) {
-	orderID, exist := payload["order_id"].(string)
-	if !exist {
-		return false, "Invalid Notification!"
-	}
+func (svc *service) FindAll(page, size int) ([]dtos.ResTransaction, string) {
+	var res []dtos.ResTransaction
 
-	status, err := helpers.CheckTransaction(orderID)
+	transactions, err := svc.model.Paginate(page, size)
+
 	if err != nil {
-		return false, err.Error()
+		return nil, err.Error()
 	}
 
-	transaction := svc.model.SelectTransactionByOrderID(orderID)
-	if transaction == nil {
-		return false, "Transaction Not Found!"
-	}
-
-	update := svc.model.UpdateStatus(transaction.ID, status)
-	if !update {
-		return false, "Update Transaction Status Failed!"
-	}
-
-	return true, ""
-}
-
-func (svc *service) FindAll(page, size int) []dtos.ResTransaction {
-	var transactions []dtos.ResTransaction
-
-	transactionsEnt := svc.model.Paginate(page, size)
-
-	for _, transaction := range transactionsEnt {
+	for _, transaction := range transactions {
 		var data dtos.ResTransaction
 
 		if err := smapping.FillStruct(&data, smapping.MapFields(transaction)); err != nil {
-			log.Error(err.Error())
+			return nil, err.Error()
 		} 
 		
-		transactions = append(transactions, data)
+		res = append(res, data)
 	}
 
-	return transactions
+	return res, ""
 }
 
-func (svc *service) FindByID(transactionID int) *dtos.ResTransaction {
-	res := dtos.ResTransaction{}
-	transaction := svc.model.SelectByID(transactionID)
+func (svc *service) FindByID(transactionID int) (*dtos.ResTransaction, string) {
+	var res dtos.ResTransaction
+	transaction, err := svc.model.SelectByID(transactionID)
 
-	if transaction == nil {
-		return nil
-	}
-
-	err := smapping.FillStruct(&res, smapping.MapFields(transaction))
 	if err != nil {
-		log.Error(err)
-		return nil
+		return nil, err.Error()
+	}
+	
+	if err := smapping.FillStruct(&res, smapping.MapFields(transaction)); err != nil {
+		return nil, err.Error()
 	}
 
-	fineItems := svc.model.SelectAllFineItemOnTransactionID(transactionID)
+	fineItems, err := svc.model.SelectAllFineItemOnTransactionID(transactionID)
+	
+	if err != nil {
+		return nil, err.Error()
+	}
+
 	res.Fines = fineItems
 
-	return &res
+	return &res, ""
 }
 
 func (svc *service) Create(newTransaction dtos.InputTransaction) (*dtos.ResTransaction, string) {
 	var fineItems []dtos.FineItem
 
-	member := svc.model.SelectMemberByID(newTransaction.MemberID)
+	member, err := svc.model.SelectMemberByID(newTransaction.MemberID)
 	
-	if member == nil {
-		return nil, "Unknown Member ID"
+	if err != nil {
+		return nil, err.Error()
 	}
 
 	if len(newTransaction.LoanIDS) > 0 {
 		for _, loanID := range newTransaction.LoanIDS {
-			loanHistory := svc.model.SelectFineItemByIDAndMemberID(loanID, newTransaction.MemberID) 
+			loanHistory, _ := svc.model.SelectFineItemByIDAndMemberID(loanID, newTransaction.MemberID) 
 
 			if loanHistory == nil {
 				return nil, "Unknown Loan History for this Member or Loan Status might not already be Changed from Checked-Out or On-Hold!"
 			}
+
 			fineItems = append(fineItems, *loanHistory)
 		}
 	} else {
-		fineItems = svc.model.SelectAllFineItemOnMemberID(newTransaction.MemberID)
+		fineItems, _ = svc.model.SelectAllFineItemOnMemberID(newTransaction.MemberID)
 
 		if fineItems == nil || len(fineItems) == 0 {
 			return nil, "Member does not have any Fines yet!"
@@ -160,14 +144,12 @@ func (svc *service) Create(newTransaction dtos.InputTransaction) (*dtos.ResTrans
 	transaction.PaymentURL = snapRequest.RedirectURL
 	transaction.OrderID = orderID
 
-	transactionID := svc.model.Insert(transaction)
-	if transactionID == -1 {
-		return nil, "Error When Creating a Transaction!"
+	transactionID, err := svc.model.Insert(transaction)
+	if err != nil {
+		return nil, err.Error()
 	}
 
-	setTransactionID := svc.model.UpdateBatchTransactionDetail(fineItems, transactionID)
-
-	if !setTransactionID {
+	if _, err := svc.model.UpdateBatchTransactionDetail(fineItems, transactionID); err != nil {
 		return nil, "Error Set Transaction ID for Loan History!"
 	}
 
@@ -176,33 +158,52 @@ func (svc *service) Create(newTransaction dtos.InputTransaction) (*dtos.ResTrans
 	return &resTransaction, ""
 }
 
-func (svc *service) Modify(transactionData dtos.InputTransaction, transactionID int) bool {
-	newTransaction := transaction.Transaction{}
-
-	err := smapping.FillStruct(&newTransaction, smapping.MapFields(transactionData))
-	if err != nil {
-		log.Error(err)
-		return false
+func (svc *service) Modify(transactionData dtos.InputTransaction, transactionID int) (bool, string) {
+	var newTransaction transaction.Transaction
+	
+	if err := smapping.FillStruct(&newTransaction, smapping.MapFields(transactionData)); err != nil {
+		return false, err.Error()
 	}
 
 	newTransaction.ID = transactionID
-	rowsAffected := svc.model.Update(newTransaction)
+	_, err := svc.model.Update(newTransaction)
 
-	if rowsAffected <= 0 {
-		log.Error("There is No Transaction Updated!")
-		return false
+	if err != nil {
+		return false, err.Error()
 	}
 	
-	return true
+	return true, ""
 }
 
-func (svc *service) Remove(transactionID int) bool {
-	rowsAffected := svc.model.DeleteByID(transactionID)
+func (svc *service) Remove(transactionID int) (bool, string) {
+	_, err := svc.model.DeleteByID(transactionID)
 
-	if rowsAffected <= 0 {
-		log.Error("There is No Transaction Deleted!")
-		return false
+	if err != nil {
+		return false, err.Error()
 	}
 
-	return true
+	return true, ""
+}
+
+func (svc *service) VerifyPayment(payload map[string]any) (bool, string) {
+	orderID, exist := payload["order_id"].(string)
+	if !exist {
+		return false, "Invalid Notification!"
+	}
+
+	status, err := helpers.CheckTransaction(orderID)
+	if err != nil {
+		return false, err.Error()
+	}
+
+	transaction, err := svc.model.SelectTransactionByOrderID(orderID)
+	if err != nil {
+		return false, "Transaction Not Found!"
+	}
+	
+	if _, err := svc.model.UpdateStatus(transaction.ID, status); err != nil {
+		return false, "Update Transaction Status Failed!"
+	}
+
+	return true, ""
 }
