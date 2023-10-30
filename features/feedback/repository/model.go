@@ -6,7 +6,6 @@ import (
 	"perpustakaan/features/feedback/dtos"
 	"perpustakaan/features/member"
 
-	"github.com/labstack/gommon/log"
 	"gorm.io/gorm"
 )
 
@@ -20,30 +19,30 @@ func New(db *gorm.DB) feedback.Repository {
 	}
 }
 
-func (mdl *model) Paginate(page, size int) []dtos.FeedbackJoinReply {
+func (mdl *model) Paginate(page int, size int, member string, priority string) ([]dtos.FeedbackJoinReply, error) {
 	var feedbacks []dtos.FeedbackJoinReply
 
 	offset := (page - 1) * size
-
-	result := mdl.db.Table("feedbacks").
+	memberName := "%" + member + "%"
+	priorityStatus := "%" + priority + "%"
+	
+	if err := mdl.db.Table("feedbacks").
 	Select("feedbacks.comment, feedbacks.priority_status, members.full_name as member, feedback_replies.comment as reply, librarians.full_name as staff").
 		Joins("LEFT JOIN members ON members.id = feedbacks.member_id").
 		Joins("LEFT JOIN feedback_replies ON feedbacks.id = feedback_replies.feedback_id").
 		Joins("LEFT JOIN librarians ON librarians.id = feedback_replies.librarian_id").
-		Offset(offset).Limit(size).Find(&feedbacks)
-	
-	if result.Error != nil {
-		log.Error(result.Error)
-		return nil
+		Where("members.full_name IS NULL OR members.full_name LIKE ?", memberName).
+		Where("feedbacks.priority_status LIKE ?", priorityStatus).
+		Offset(offset).Limit(size).Find(&feedbacks).Error; err != nil {
+		return nil, err
 	}
 
-	return feedbacks
+	return feedbacks, nil
 }
 
-func (mdl *model) Insert(newFeedback feedback.Feedback) *dtos.ResFeedback {
-	if result := mdl.db.Create(&newFeedback); result.Error != nil {
-		log.Error(result.Error)
-		return nil
+func (mdl *model) Insert(newFeedback feedback.Feedback) (*dtos.ResFeedback, error) {
+	if err := mdl.db.Create(&newFeedback).Error; err != nil {
+		return nil, err
 	}
 	
 	var feedback = dtos.ResFeedback{
@@ -55,23 +54,22 @@ func (mdl *model) Insert(newFeedback feedback.Feedback) *dtos.ResFeedback {
 	if newFeedback.MemberID != nil {
 		var member member.Member
 
-		if result := mdl.db.Table("members").Where("id = ?", newFeedback.MemberID).First(&member); result.Error == nil {
+		if err := mdl.db.Table("members").Where("id = ?", newFeedback.MemberID).First(&member).Error; err == nil {
 			feedback.Member = member.FullName
 		} else {
-			log.Error(result.Error.Error())
+			return nil, err
 		}
 
 	}
 
-	return &feedback
+	return &feedback, nil
 }
 
-func (mdl *model) SelectByID(feedbackID int) *dtos.FeedbackWithReply {
+func (mdl *model) SelectByID(feedbackID int) (*dtos.FeedbackWithReply, error) {
 	var fb feedback.Feedback
 	
-	if result := mdl.db.First(&fb, feedbackID); result.Error != nil {
-		log.Error(result.Error)
-		return nil
+	if err := mdl.db.First(&fb, feedbackID).Error; err != nil {
+		return nil, err
 	}
 
 	var feedbackWithReply = dtos.FeedbackWithReply{
@@ -80,14 +78,13 @@ func (mdl *model) SelectByID(feedbackID int) *dtos.FeedbackWithReply {
 	}
 
 	feedbackWithReply.Member = "Anonymous"
-	
 	if fb.MemberID != nil {
 		var member member.Member
 
-		if result := mdl.db.Table("members").Where("id = ?", fb.MemberID).First(&member); result.Error == nil {
+		if err := mdl.db.Table("members").Where("id = ?", fb.MemberID).First(&member).Error; err == nil {
 			feedbackWithReply.Member = member.FullName
 		} else {
-			log.Error(result.Error.Error())
+			return nil, err
 		}
 	}
 
@@ -95,7 +92,7 @@ func (mdl *model) SelectByID(feedbackID int) *dtos.FeedbackWithReply {
 	
 	if result := mdl.db.Table("feedback_replies").Where("feedback_id = ?", feedbackID).First(&reply); result.Error == nil {
 		var librarian auth.Librarian
-		if result := mdl.db.Table("librarians").Where("id = ?", reply.LibrarianID).First(&librarian); result.Error == nil {
+		if err := mdl.db.Table("librarians").Where("id = ?", reply.LibrarianID).First(&librarian).Error; err == nil {
 			feedbackWithReply.Reply = dtos.StaffReply{
 				Staff: librarian.FullName,
 				Comment: reply.Comment,
@@ -103,32 +100,31 @@ func (mdl *model) SelectByID(feedbackID int) *dtos.FeedbackWithReply {
 		}
 	}
 
-	return &feedbackWithReply
+	return &feedbackWithReply, nil
 }
 
-func (mdl *model) InsertReplyForAFeedback(reply feedback.FeedbackReply) *dtos.StaffReply {
-	if result := mdl.db.Create(&reply); result.Error != nil {
-		log.Error(result.Error)
+func (mdl *model) InsertReplyForAFeedback(reply feedback.FeedbackReply) (*dtos.StaffReply, error) {
+	if err := mdl.db.Create(&reply).Error; err != nil {
+		return nil, err
 	}
 
 	var staff auth.Librarian
-	if result := mdl.db.First(&staff, reply.LibrarianID); result.Error != nil {
-		log.Error(result.Error)
+	if err := mdl.db.First(&staff, reply.LibrarianID).Error; err != nil {
+		return nil, err
 	}
 
 	return &dtos.StaffReply{
 		Staff: staff.FullName,
 		Comment: reply.Comment,
-	} 
+	}, nil
 }
 
-func (mdl *model) DeleteByID(feedbackID int) int64 {
+func (mdl *model) DeleteByID(feedbackID int) (int, error) {
 	result := mdl.db.Delete(&feedback.Feedback{}, feedbackID)
 	
 	if result.Error != nil {
-		log.Error(result.Error)
-		return 0
+		return 0, result.Error
 	}
 
-	return result.RowsAffected
+	return int(result.RowsAffected), nil
 }

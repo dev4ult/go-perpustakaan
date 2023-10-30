@@ -7,19 +7,19 @@ import (
 )
 
 type Repository interface {
-	Paginate(page, size int) []dtos.FeedbackJoinReply
-	Insert(newFeedback Feedback) *dtos.ResFeedback
-	SelectByID(feedbackID int) *dtos.FeedbackWithReply
-	InsertReplyForAFeedback(reply FeedbackReply) *dtos.StaffReply
-	DeleteByID(feedbackID int) int64
+	Paginate(page int, size int, member string, priority string) ([]dtos.FeedbackJoinReply, error)
+	Insert(newFeedback Feedback) (*dtos.ResFeedback, error)
+	SelectByID(feedbackID int) (*dtos.FeedbackWithReply, error)
+	InsertReplyForAFeedback(reply FeedbackReply) (*dtos.StaffReply, error)
+	DeleteByID(feedbackID int) (int, error)
 }
 
 type Usecase interface {
-	FindAll(page, size int) []dtos.FeedbackWithReply
-	FindByID(feedbackID int) *dtos.FeedbackWithReply
-	Create(newFeedback dtos.InputFeedback) *dtos.FeedbackWithReply
-	AddAReply(replyData dtos.InputReply, feedbackID int) *dtos.StaffReply
-	Remove(feedbackID int) bool
+	FindAll(page int, size int, member string, priority string) ([]dtos.FeedbackWithReply, string)
+	FindByID(feedbackID int) (*dtos.FeedbackWithReply, string)
+	Create(newFeedback dtos.InputFeedback) (*dtos.FeedbackWithReply, string)
+	AddAReply(replyData dtos.InputReply, feedbackID int) (*dtos.StaffReply, string)
+	Remove(feedbackID int) (bool, string)
 }
 
 type Handler interface {

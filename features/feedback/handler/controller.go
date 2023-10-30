@@ -27,12 +27,19 @@ func (ctl *controller) GetFeedbacks() echo.HandlerFunc {
 		
 		page := pagination.Page
 		size := pagination.Size
+		member := ctx.QueryParam("member")
+		priority := ctx.QueryParam("priority")
 
-		if page <= 0 || size <= 0 {
-			return ctx.JSON(400, helper.Response("Param must be provided in number!"))
+		if size == 0 {
+			page = 1
+			size = 10
 		}
 
-		feedbacks := ctl.service.FindAll(page, size)
+		feedbacks, message := ctl.service.FindAll(page, size, member, priority)
+
+		if message != "" {
+			return ctx.JSON(404, helper.Response(message))
+		}
 
 		if feedbacks == nil {
 			return ctx.JSON(404, helper.Response("There is No Feedbacks!"))
@@ -52,10 +59,10 @@ func (ctl *controller) FeedbackDetails() echo.HandlerFunc {
 			return ctx.JSON(400, helper.Response("Param must be provided in number!"))
 		}
 
-		feedback := ctl.service.FindByID(feedbackID)
+		feedback, message := ctl.service.FindByID(feedbackID)
 
 		if feedback == nil {
-			return ctx.JSON(404, helper.Response("Feedback Not Found!"))
+			return ctx.JSON(404, helper.Response(message))
 		}
 
 		return ctx.JSON(200, helper.Response("Success!", map[string]any {
@@ -67,14 +74,18 @@ func (ctl *controller) FeedbackDetails() echo.HandlerFunc {
 func (ctl *controller) CreateFeedback() echo.HandlerFunc {
 	return func (ctx echo.Context) error  {
 		input := ctx.Get("request").(*dtos.InputFeedback)
-		userID := int(ctx.Get("user-id").(float64))
+		userID := ctx.Get("user-id")
 
-		input.MemberID = &userID 
+		if userID != nil {
+			uid := int(userID.(float64))
+	
+			input.MemberID = &uid 
+		}
 
-		feedback := ctl.service.Create(*input)
+		feedback, message := ctl.service.Create(*input)
 
 		if feedback == nil {
-			return ctx.JSON(500, helper.Response("Something Went Wrong!", nil))
+			return ctx.JSON(500, helper.Response(message))
 		}
 
 		return ctx.JSON(200, helper.Response("Success!", map[string]any {
@@ -93,10 +104,10 @@ func (ctl *controller) ReplyOnFeedback() echo.HandlerFunc {
 			return ctx.JSON(400, helper.Response(err.Error()))
 		}
 
-		feedback := ctl.service.FindByID(feedbackID)
+		feedback, message := ctl.service.FindByID(feedbackID)
 
 		if feedback == nil {
-			return ctx.JSON(404, helper.Response("Feedback Not Found!"))
+			return ctx.JSON(404, helper.Response(message))
 		}
 		
 		if feedback.Reply.Staff != "" {
@@ -107,10 +118,10 @@ func (ctl *controller) ReplyOnFeedback() echo.HandlerFunc {
 
 		input.StaffID = userID 
 
-		staffReply := ctl.service.AddAReply(*input, feedbackID)
+		staffReply, errMessage := ctl.service.AddAReply(*input, feedbackID)
 
 		if staffReply == nil {
-			return ctx.JSON(500, helper.Response("Something Went Wrong!"))
+			return ctx.JSON(500, helper.Response(errMessage))
 		}
 
 		feedback.Reply.Staff = staffReply.Staff
@@ -130,16 +141,16 @@ func (ctl *controller) DeleteFeedback() echo.HandlerFunc {
 			return ctx.JSON(400, helper.Response("Param must be provided in number!"))
 		}
 
-		feedback := ctl.service.FindByID(feedbackID)
+		feedback, message := ctl.service.FindByID(feedbackID)
 
 		if feedback == nil {
-			return ctx.JSON(404, helper.Response("Feedback Not Found!"))
+			return ctx.JSON(404, helper.Response(message))
 		}
 
-		delete := ctl.service.Remove(feedbackID)
+		delete, deleteMessage := ctl.service.Remove(feedbackID)
 
 		if !delete {
-			return ctx.JSON(500, helper.Response("Something Went Wrong!"))
+			return ctx.JSON(500, helper.Response(deleteMessage))
 		}
 
 		return ctx.JSON(200, helper.Response("Feedback Success Deleted!", nil))

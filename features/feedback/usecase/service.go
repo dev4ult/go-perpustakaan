@@ -5,7 +5,6 @@ import (
 	"perpustakaan/features/feedback/dtos"
 	"perpustakaan/helpers"
 
-	"github.com/labstack/gommon/log"
 	"github.com/mashingan/smapping"
 )
 
@@ -19,8 +18,12 @@ func New(model feedback.Repository) feedback.Usecase {
 	}
 }
 
-func (svc *service) FindAll(page, size int) []dtos.FeedbackWithReply {
-	feedbacks := svc.model.Paginate(page, size)
+func (svc *service) FindAll(page int, size int, member string, priority string) ([]dtos.FeedbackWithReply, string) {
+	feedbacks, err := svc.model.Paginate(page, size, member, priority)
+
+	if err != nil {
+		return nil, err.Error()
+	}
 
 	var feedbackWithReply []dtos.FeedbackWithReply 
 	for _, feedback := range feedbacks {
@@ -39,72 +42,66 @@ func (svc *service) FindAll(page, size int) []dtos.FeedbackWithReply {
 		})
 	}
 
-	return feedbackWithReply
+	return feedbackWithReply, ""
 }
 
-func (svc *service) FindByID(feedbackID int) *dtos.FeedbackWithReply {
-	feedback := svc.model.SelectByID(feedbackID)
+func (svc *service) FindByID(feedbackID int) (*dtos.FeedbackWithReply, string) {
+	feedback, err := svc.model.SelectByID(feedbackID)
 
-	if feedback == nil {
-		log.Error("Feedback Not Found!")
-		return nil
+	if err != nil {
+		return nil, err.Error()
 	}
 
-	return feedback
+	return feedback, ""
 }
 
-func (svc *service) Create(newFeedback dtos.InputFeedback) *dtos.FeedbackWithReply {
-	feedback := feedback.Feedback{}
+func (svc *service) Create(newFeedback dtos.InputFeedback) (*dtos.FeedbackWithReply, string) {
+	var feedback feedback.Feedback
 	
 	if err := smapping.FillStruct(&feedback, smapping.MapFields(newFeedback)); err != nil {
-		log.Error(err.Error())
-		return nil
+		return nil, err.Error()
 	}
 	
 	feedback.PriorityStatus = helpers.GetPrediction(newFeedback.Comment)
 
-	resFeedback := svc.model.Insert(feedback)
-	if resFeedback == nil {
-		return nil
+	res, err := svc.model.Insert(feedback)
+	if err != nil {
+		return nil, err.Error()
 	}
 
 	feedbackWithReply := dtos.FeedbackWithReply{}
 
-	if err := smapping.FillStruct(&feedbackWithReply, smapping.MapFields(resFeedback)); err != nil {
-		log.Error(err.Error())
-		return nil
+	if err := smapping.FillStruct(&feedbackWithReply, smapping.MapFields(res)); err != nil {
+		return nil, err.Error()
 	}
 
-	return &feedbackWithReply
+	return &feedbackWithReply, ""
 }
 
-func (svc *service) AddAReply(replyData dtos.InputReply, feedbackID int) *dtos.StaffReply {
-	feedbackReply := feedback.FeedbackReply{}
+func (svc *service) AddAReply(replyData dtos.InputReply, feedbackID int) (*dtos.StaffReply, string) {
+	var feedbackReply feedback.FeedbackReply
 	
 	if err := smapping.FillStruct(&feedbackReply, smapping.MapFields(replyData)); err != nil {
-		log.Error(err)
-		return nil
+		return nil, err.Error()
 	}
 
 	feedbackReply.FeedbackID = feedbackID
 	feedbackReply.LibrarianID = replyData.StaffID
-	staffReply := svc.model.InsertReplyForAFeedback(feedbackReply)
+	staffReply, err := svc.model.InsertReplyForAFeedback(feedbackReply)
 
-	if staffReply == nil {
-		log.Error("There is No Reply Added to The Feedback!")
-		return nil
+	if err != nil {
+		return nil, err.Error()
 	}
 	
-	return staffReply
+	return staffReply, ""
 }
 
-func (svc *service) Remove(feedbackID int) bool {
-	rowsAffected := svc.model.DeleteByID(feedbackID)
+func (svc *service) Remove(feedbackID int) (bool, string) {
+	_, err := svc.model.DeleteByID(feedbackID)
 
-	if rowsAffected <= 0 {
-		log.Error("There is No Feedback Deleted!")
-		return false
+	if err != nil {
+		return false, err.Error()
 	}
 
-	return true
+	return true, ""
 }
