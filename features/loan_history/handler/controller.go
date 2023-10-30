@@ -30,12 +30,18 @@ func (ctl *controller) GetLoanHistories() echo.HandlerFunc {
 		
 		page := pagination.Page
 		size := pagination.Size
+		searchKey := ctx.QueryParam("member")
 
 		if page <= 0 || size <= 0 {
-			return ctx.JSON(400, helper.Response("Param must be provided in number!"))
+			page = 1
+			size = 10
 		}
 
-		loanHistories := ctl.service.FindAll(page, size)
+		loanHistories, message := ctl.service.FindAll(page, size, searchKey)
+
+		if message != "" {
+			return ctx.JSON(500, helper.Response(message))
+		}
 
 		if len(loanHistories) == 0 {
 			return ctx.JSON(404, helper.Response("There is No Loan Histories!"))
@@ -56,10 +62,10 @@ func (ctl *controller) LoanHistoryDetails() echo.HandlerFunc {
 			return ctx.JSON(400, helper.Response("Param must be provided in number!"))
 		}
 
-		loanHistory := ctl.service.FindByID(loanHistoryID)
+		loanHistory, message := ctl.service.FindByID(loanHistoryID)
 
 		if loanHistory == nil {
-			return ctx.JSON(404, helper.Response("Loan History Not Found!"))
+			return ctx.JSON(404, helper.Response(message))
 		}
 
 		return ctx.JSON(200, helper.Response("Success!", map[string]any {
@@ -72,10 +78,10 @@ func (ctl *controller) CreateLoanHistory() echo.HandlerFunc {
 	return func (ctx echo.Context) error  {
 		input := ctx.Get("request").(*dtos.InputLoanHistory)
 
-		loanHistory := ctl.service.Create(*input)
+		loanHistory, message := ctl.service.Create(*input)
 
 		if loanHistory == nil {
-			return ctx.JSON(500, helper.Response("Something Went Wrong!", nil))
+			return ctx.JSON(500, helper.Response(message))
 		}
 
 		return ctx.JSON(200, helper.Response("Success!", map[string]any {
@@ -93,16 +99,16 @@ func (ctl *controller) UpdateLoanHistory() echo.HandlerFunc {
 			return ctx.JSON(400, helper.Response(errParam.Error()))
 		}
 
-		loanHistory := ctl.service.FindByID(loanHistoryID)
+		loanHistory, message := ctl.service.FindByID(loanHistoryID)
 
 		if loanHistory == nil {
-			return ctx.JSON(404, helper.Response("Loan History Not Found!"))
+			return ctx.JSON(404, helper.Response(message))
 		}
 		
-		update := ctl.service.Modify(*input, loanHistoryID)
+		update, updateMessage := ctl.service.Modify(*input, loanHistoryID)
 
 		if !update {
-			return ctx.JSON(500, helper.Response("Something Went Wrong!"))
+			return ctx.JSON(500, helper.Response(updateMessage))
 		}
 
 		return ctx.JSON(200, helper.Response("Loan History Success Updated!"))
@@ -118,16 +124,16 @@ func (ctl *controller) UpdateLoanStatus() echo.HandlerFunc {
 			return ctx.JSON(400, helper.Response(errParam.Error()))
 		}
 
-		loanHistory := ctl.service.FindByID(loanHistoryID)
+		loanHistory, message := ctl.service.FindByID(loanHistoryID)
 
 		if loanHistory == nil {
-			return ctx.JSON(404, helper.Response("Loan History Not Found!"))
+			return ctx.JSON(404, helper.Response(message))
 		}
 		
-		patch := ctl.service.ModifyStatus(input.Status, loanHistoryID)
+		patch, patchMessage := ctl.service.ModifyStatus(input.Status, loanHistoryID)
 
 		if !patch {
-			return ctx.JSON(500, helper.Response("Something Went Wrong!"))
+			return ctx.JSON(500, helper.Response(patchMessage))
 		}
 
 		return ctx.JSON(200, helper.Response("Loan Status Success Updated!"))
@@ -142,16 +148,16 @@ func (ctl *controller) DeleteLoanHistory() echo.HandlerFunc {
 			return ctx.JSON(400, helper.Response("Param must be provided in number!"))
 		}
 
-		loanHistory := ctl.service.FindByID(loanHistoryID)
+		loanHistory, message := ctl.service.FindByID(loanHistoryID)
 
 		if loanHistory == nil {
-			return ctx.JSON(404, helper.Response("Loan History Not Found!"))
+			return ctx.JSON(404, helper.Response(message))
 		}
 
-		delete := ctl.service.Remove(loanHistoryID)
+		delete, deleteMessage := ctl.service.Remove(loanHistoryID)
 
 		if !delete {
-			return ctx.JSON(500, helper.Response("Something Went Wrong!"))
+			return ctx.JSON(500, helper.Response(deleteMessage))
 		}
 
 		return ctx.JSON(200, helper.Response("Loan History Success Deleted!", nil))

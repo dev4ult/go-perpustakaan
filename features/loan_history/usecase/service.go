@@ -4,7 +4,6 @@ import (
 	"perpustakaan/features/loan_history"
 	"perpustakaan/features/loan_history/dtos"
 
-	"github.com/labstack/gommon/log"
 	"github.com/mashingan/smapping"
 )
 
@@ -18,76 +17,76 @@ func New(model loan_history.Repository) loan_history.Usecase {
 	}
 }
 
-func (svc *service) FindAll(page, size int) []dtos.ResLoanHistory {
-	loanHistories := svc.model.Paginate(page, size)
+func (svc *service) FindAll(page int, size int, searchKey string) ([]dtos.ResLoanHistory, string) {
+	loanHistories, err := svc.model.Paginate(page, size, searchKey)
 
-	return loanHistories
-}
-
-func (svc *service) FindByID(loanHistoryID int) *dtos.ResLoanHistory {
-	loanHistory := svc.model.SelectByID(loanHistoryID)
-
-	if loanHistory == nil {
-		return nil
+	if err != nil {
+		return nil, err.Error()
 	}
 
-	return loanHistory
+	return loanHistories, ""
 }
 
-func (svc *service) Create(newLoanHistory dtos.InputLoanHistory) *dtos.ResLoanHistory {
-	loanHistory := loan_history.LoanHistory{}
+func (svc *service) FindByID(loanHistoryID int) (*dtos.ResLoanHistory, string) {
+	loanHistory, err := svc.model.SelectByID(loanHistoryID)
+
+	if err != nil {
+		return nil, err.Error()
+	}
+
+	return loanHistory, ""
+}
+
+func (svc *service) Create(newLoanHistory dtos.InputLoanHistory) (*dtos.ResLoanHistory, string) {
+	var loanHistory loan_history.LoanHistory
+
 	if err := smapping.FillStruct(&loanHistory, smapping.MapFields(newLoanHistory)); err != nil {
-		log.Error(err)
-		return nil
+		return nil, err.Error()
 	}
 
 	loanHistory.FineTypeID = 1
-	resLoanHistory := svc.model.Insert(loanHistory)
-	if resLoanHistory == nil {
-		return nil
+	res, err := svc.model.Insert(loanHistory)
+
+	if err != nil {
+		return nil, err.Error()
 	}
 
-	return resLoanHistory
+	return res, ""
 }
 
-func (svc *service) Modify(loanHistoryData dtos.InputLoanHistory, loanHistoryID int) bool {
-	newLoanHistory := loan_history.LoanHistory{}
-
-	err := smapping.FillStruct(&newLoanHistory, smapping.MapFields(loanHistoryData))
-	if err != nil {
-		log.Error(err)
-		return false
+func (svc *service) Modify(loanHistoryData dtos.InputLoanHistory, loanHistoryID int) (bool, string) {
+	var newLoanHistory loan_history.LoanHistory
+	
+	if err := smapping.FillStruct(&newLoanHistory, smapping.MapFields(loanHistoryData)); err != nil {
+		return false, err.Error()
 	}
 
 	newLoanHistory.ID = loanHistoryID
-	rowsAffected := svc.model.Update(newLoanHistory)
+	_, err := svc.model.Update(newLoanHistory)
 
-	if rowsAffected <= 0 {
-		log.Error("There is No Loan History Updated!")
-		return false
+	if err != nil {
+		return false, err.Error()
 	}
 	
-	return true
+	return true, ""
 }
 
-func (svc *service) ModifyStatus(status, loanHistoryID int) bool {
-	rowsAffected := svc.model.UpdateStatus(status, loanHistoryID)
+func (svc *service) ModifyStatus(status, loanHistoryID int) (bool, string) {
+	_, err := svc.model.UpdateStatus(status, loanHistoryID)
 
-	if rowsAffected <= 0 {
-		log.Error("There is No Loan Status Updated!")
-		return false
+	if err != nil {
+		return false, err.Error()
 	}
 	
-	return true
+	return true, ""
 }
 
-func (svc *service) Remove(loanHistoryID int) bool {
-	rowsAffected := svc.model.DeleteByID(loanHistoryID)
+func (svc *service) Remove(loanHistoryID int) (bool, string) {
+	_, err := svc.model.DeleteByID(loanHistoryID)
 
-	if rowsAffected <= 0 {
-		log.Error("There is No Loan History Deleted!")
-		return false
+	if err != nil {
+		return false, err.Error()
 	}
 
-	return true
+	return true, ""
 }

@@ -7,21 +7,21 @@ import (
 )
 
 type Repository interface {
-	Paginate(page, size int) []dtos.ResLoanHistory
-	Insert(newLoanHistory LoanHistory) *dtos.ResLoanHistory
-	SelectByID(loanHistoryID int) *dtos.ResLoanHistory
-	Update(loanHistory LoanHistory) int64
-	UpdateStatus(status, loanHistoryID int) int64
-	DeleteByID(loanHistoryID int) int64
+	Paginate(page int, size int, searchKey string) ([]dtos.ResLoanHistory, error)
+	Insert(newLoanHistory LoanHistory)(*dtos.ResLoanHistory, error)
+	SelectByID(loanHistoryID int) (*dtos.ResLoanHistory, error)
+	Update(loanHistory LoanHistory) (int, error)
+	UpdateStatus(status, loanHistoryID int) (int, error)
+	DeleteByID(loanHistoryID int) (int, error)
 }
 
 type Usecase interface {
-	FindAll(page, size int) []dtos.ResLoanHistory
-	FindByID(loanHistoryID int) *dtos.ResLoanHistory
-	Create(newLoanHistory dtos.InputLoanHistory) *dtos.ResLoanHistory
-	Modify(loanHistoryData dtos.InputLoanHistory, loanHistoryID int) bool
-	ModifyStatus(status, loanHistoryID int) bool
-	Remove(loanHistoryID int) bool
+	FindAll(page int, size int, searchKey string) ([]dtos.ResLoanHistory, string)
+	FindByID(loanHistoryID int) (*dtos.ResLoanHistory, string)
+	Create(newLoanHistory dtos.InputLoanHistory) (*dtos.ResLoanHistory, string)
+	Modify(loanHistoryData dtos.InputLoanHistory, loanHistoryID int)( bool, string)
+	ModifyStatus(status, loanHistoryID int) (bool, string)
+	Remove(loanHistoryID int) (bool, string)
 }
 
 type Handler interface {
