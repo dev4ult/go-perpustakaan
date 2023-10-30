@@ -26,7 +26,7 @@ func GetPrediction(comment string) string {
 	} else {
 		cfg := config.LoadServerConfig()
 		req.Header.Set("Content-Type", "application/json")
-		req.Header.Set("Authorization", "Bearer "+cfg.HGF_TOKEN)
+		req.Header.Set("Authorization", "Bearer " + cfg.HGF_TOKEN)
 
 		resp, err := http.DefaultClient.Do(req)
 		if err != nil {
@@ -34,14 +34,12 @@ func GetPrediction(comment string) string {
 		}
 		defer resp.Body.Close()
 
-		// Read and print the response
 		buf := new(bytes.Buffer)
 		_, err = buf.ReadFrom(resp.Body)
 		if err != nil {
 			log.Error("Error reading response:", err)
 		}
 
-		// fmt.Println(buf.String())
 
 		if resp.StatusCode == 200 {
 			var predictions [][]dtos.Prediction
