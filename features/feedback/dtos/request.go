@@ -6,7 +6,7 @@ type InputFeedback struct {
 }
 
 type InputReply struct {
-	StaffID int `json:"user-id" form:"staff-id"`
+	StaffID int `json:"staff-id" form:"staff-id"`
 	Comment string `json:"comment" form:"comment" validate:"required"`
 }
 

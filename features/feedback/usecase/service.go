@@ -3,7 +3,6 @@ package usecase
 import (
 	"perpustakaan/features/feedback"
 	"perpustakaan/features/feedback/dtos"
-	"perpustakaan/helpers"
 
 	"github.com/mashingan/smapping"
 )
@@ -62,14 +61,12 @@ func (svc *service) Create(newFeedback dtos.InputFeedback) (*dtos.FeedbackWithRe
 		return nil, err.Error()
 	}
 	
-	feedback.PriorityStatus = helpers.GetPrediction(newFeedback.Comment)
-
 	res, err := svc.model.Insert(feedback)
 	if err != nil {
 		return nil, err.Error()
 	}
 
-	feedbackWithReply := dtos.FeedbackWithReply{}
+	var feedbackWithReply dtos.FeedbackWithReply
 
 	if err := smapping.FillStruct(&feedbackWithReply, smapping.MapFields(res)); err != nil {
 		return nil, err.Error()
