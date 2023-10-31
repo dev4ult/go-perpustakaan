@@ -158,7 +158,33 @@ func (svc *service) Create(newTransaction dtos.InputTransaction) (*dtos.ResTrans
 	return &resTransaction, ""
 }
 
-func (svc *service) Modify(transactionData dtos.InputTransaction, transactionID int) (bool, string) {
+func (svc *service) Modify(transactionData dtos.InputTransaction, transactionID int, orderID string, status string, paymentURL string) (bool, string) {
+	var fineItems []dtos.FineItem
+	
+	if len(transactionData.LoanIDS) > 0 {
+		_, err := svc.model.UnsetTransactionIDs(transactionID)
+
+		if err != nil {
+			return false, err.Error()
+		}
+
+		for _, loanID := range transactionData.LoanIDS {
+			loanHistory, _ := svc.model.SelectFineItemByIDAndMemberID(loanID, transactionData.MemberID) 
+
+			if loanHistory == nil {
+				return false, "Unknown Loan History for this Member or Loan Status might not already be Changed from Checked-Out or On-Hold!"
+			}
+
+			fineItems = append(fineItems, *loanHistory)
+		}
+	} else {
+		fineItems, _ = svc.model.SelectAllFineItemOnMemberID(transactionData.MemberID)
+
+		if fineItems == nil || len(fineItems) == 0 {
+			return false, "Member does not have any Fines yet!"
+		}
+	}
+
 	var newTransaction transaction.Transaction
 	
 	if err := smapping.FillStruct(&newTransaction, smapping.MapFields(transactionData)); err != nil {
@@ -166,10 +192,17 @@ func (svc *service) Modify(transactionData dtos.InputTransaction, transactionID 
 	}
 
 	newTransaction.ID = transactionID
+	newTransaction.OrderID = orderID
+	newTransaction.Status = status
+	newTransaction.PaymentURL = paymentURL
 	_, err := svc.model.Update(newTransaction)
 
 	if err != nil {
 		return false, err.Error()
+	}
+
+	if _, err := svc.model.UpdateBatchTransactionDetail(fineItems, transactionID); err != nil {
+		return false, "Error Set Transaction ID for Loan History!"
 	}
 	
 	return true, ""
@@ -191,7 +224,7 @@ func (svc *service) VerifyPayment(payload map[string]any) (bool, string) {
 		return false, "Invalid Notification!"
 	}
 
-	status, err := helpers.CheckTransaction(orderID)
+	status, err := svc.model.GetTransactionStatusByOrderID(orderID)
 	if err != nil {
 		return false, err.Error()
 	}

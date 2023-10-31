@@ -105,7 +105,7 @@ func (ctl *controller) UpdateTransaction() echo.HandlerFunc {
 			return ctx.JSON(404, helper.Response(message))
 		}
 		
-		update, updateMessage := ctl.service.Modify(*input, transactionID)
+		update, updateMessage := ctl.service.Modify(*input, transactionID, transaction.OrderID, transaction.Status, transaction.PaymentURL)
 
 		if !update {
 			return ctx.JSON(500, helper.Response(updateMessage))

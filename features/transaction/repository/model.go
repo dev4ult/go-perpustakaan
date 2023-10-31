@@ -4,6 +4,7 @@ import (
 	"perpustakaan/features/member"
 	"perpustakaan/features/transaction"
 	"perpustakaan/features/transaction/dtos"
+	"perpustakaan/helpers"
 
 	"gorm.io/gorm"
 )
@@ -159,4 +160,21 @@ func (mdl *model) UpdateStatus(transactionID int, status string) (bool, error) {
 	}
 
 	return true, nil
+}
+
+func (mdl *model) UnsetTransactionIDs(transactionID int) (bool, error) {
+	if err := mdl.db.Table("loan_histories").Where("transaction_id = ?", transactionID).Update("transaction_id", "NULL").Error; err != nil {
+		return false, err
+	}
+	
+	return true, nil
+}
+
+func (mdl *model) GetTransactionStatusByOrderID(orderID string) (string, error) {
+	status, err := helpers.CheckTransaction(orderID)
+	if err != nil {
+		return "", err
+	}
+	
+	return status, nil
 }

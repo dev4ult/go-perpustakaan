@@ -20,13 +20,15 @@ type Repository interface {
 	SelectMemberByID(memberID int) (*member.Member, error)
 	SelectTransactionByOrderID(orderID string) (*Transaction, error)
 	UpdateStatus(transactionID int, status string) (bool, error)
+	UnsetTransactionIDs(transactionID int) (bool, error)
+	GetTransactionStatusByOrderID(orderID string) (string, error)
 }
 
 type Usecase interface {
 	FindAll(page, size int) ([]dtos.ResTransaction, string)
 	FindByID(transactionID int) (*dtos.ResTransaction, string)
 	Create(newTransaction dtos.InputTransaction) (*dtos.ResTransaction, string)
-	Modify(transactionData dtos.InputTransaction, transactionID int) (bool, string)
+	Modify(transactionData dtos.InputTransaction, transactionID int, orderID string, status string, paymentURL string) (bool, string)
 	Remove(transactionID int) (bool, string)
 	VerifyPayment(payload map[string]any) (bool, string)
 }
