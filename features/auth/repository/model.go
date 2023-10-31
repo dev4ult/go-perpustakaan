@@ -4,7 +4,6 @@ import (
 	"perpustakaan/features/auth"
 	"perpustakaan/features/member"
 
-	"github.com/labstack/gommon/log"
 	"gorm.io/gorm"
 )
 
@@ -18,39 +17,32 @@ func New(db *gorm.DB) auth.Repository {
 	}
 }
 
-func (mdl *model) SelectLibrarianByStaffID(staffID string) *auth.Librarian {
+func (mdl *model) SelectLibrarianByStaffID(staffID string) (*auth.Librarian, error) {
 	var user auth.Librarian
-	result := mdl.db.Where("staff_id = ?", staffID).First(&user)
 
-	if result.Error != nil {
-		log.Error(result.Error)
-		return nil
+	if err := mdl.db.Where("staff_id = ?", staffID).First(&user).Error; err != nil {
+		return nil, err
 	}
 
-	return &user
+	return &user, nil
 }
 
-func (mdl *model) SelectMemberByCredentialNumber(credentialNumber string) *member.Member {
+func (mdl *model) SelectMemberByCredentialNumber(credentialNumber string) (*member.Member, error) {
 	var user member.Member
-	result := mdl.db.Where("credential_number = ?", credentialNumber).First(&user)
 
-	if result.Error != nil {
-		log.Error(result.Error)
-		return nil
+	if err := mdl.db.Where("credential_number = ?", credentialNumber).First(&user).Error; err != nil {
+		return nil, err
 	}
 
-	return &user
+	return &user, nil
 }
 
-func (mdl *model) InsertNewLibrarian(newLibrarian auth.Librarian) *auth.Librarian {
-	result := mdl.db.Create(&newLibrarian)
-
-	if result.Error != nil {
-		log.Error(result.Error.Error())
-		return nil
+func (mdl *model) InsertNewLibrarian(newLibrarian auth.Librarian) (*auth.Librarian, error) {
+	if err := mdl.db.Create(&newLibrarian).Error; err != nil {
+		return nil, err
 	}
 
-	return &newLibrarian
+	return &newLibrarian, nil
 }
 
 // func (mdl *model) Paginate(page, size int) []auth.Auth {

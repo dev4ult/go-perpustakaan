@@ -36,7 +36,11 @@ func (ctl *controller) Login() echo.HandlerFunc {
 			credential = input.StaffID
 		}
 
-		authorization := ctl.service.VerifyLogin(credential, input.Password, isLibrarian)
+		authorization, message := ctl.service.VerifyLogin(credential, input.Password, isLibrarian)
+
+		if message != "" {
+			return ctx.JSON(500, helpers.Response(message))
+		}
 
 		if authorization == nil {
 			return ctx.JSON(404, helpers.Response("Your credential or password does not Match!"))
@@ -52,16 +56,16 @@ func (ctl *controller) StaffRegistration() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
 		input := ctx.Get("request").(*dtos.InputStaffRegistration)
 
-		librarian := ctl.service.FindLibrarianByStaffID(input.StaffID)
+		librarian, _ := ctl.service.FindLibrarianByStaffID(input.StaffID)
 		
 		if librarian != nil {
 			return ctx.JSON(409, helpers.Response("Staff ID already Registered!"))
 		}
 
-		resLibrarian := ctl.service.RegisterAStaff(*input)
+		resLibrarian, message := ctl.service.RegisterAStaff(*input)
 
-		if resLibrarian == nil {
-			return ctx.JSON(500, helpers.Response("Something Went Wrong"))
+		if message != "" {
+			return ctx.JSON(500, helpers.Response(message))
 		}
 
 		return ctx.JSON(200, helpers.Response("test", map[string]any {
@@ -79,10 +83,10 @@ func (ctl *controller) Refresh() echo.HandlerFunc {
 
 		refreshToken = refreshToken[len("Bearer "):]
 
-		newToken := ctl.service.RefreshToken(authorization.AccessToken, refreshToken)
+		newToken, message := ctl.service.RefreshToken(authorization.AccessToken, refreshToken)
 
-		if newToken == nil {
-			return ctx.JSON(500, helpers.Response("Something Went Wrong!"))
+		if message != "" {
+			return ctx.JSON(500, helpers.Response(message))
 		}
 
 		return ctx.JSON(200, helpers.Response("Token Refreshed!", map[string]any {
