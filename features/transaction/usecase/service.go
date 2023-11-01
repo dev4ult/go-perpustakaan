@@ -2,14 +2,10 @@ package usecase
 
 import (
 	"fmt"
-	"perpustakaan/config"
 	"perpustakaan/features/transaction"
 	"perpustakaan/features/transaction/dtos"
 	"perpustakaan/helpers"
-	"perpustakaan/utils"
-	"strings"
 
-	"github.com/google/uuid"
 	"github.com/labstack/gommon/log"
 	"github.com/mashingan/smapping"
 	"github.com/midtrans/midtrans-go"
@@ -116,20 +112,15 @@ func (svc *service) Create(newTransaction dtos.InputTransaction) (*dtos.ResTrans
 		totalPrice += item.Amount
 	}
 
-	cfg := config.LoadServerConfig()
-	snapClient := utils.SnapClient(cfg.MT_SERVER_KEY)
-
 	customer := midtrans.CustomerDetails{
 		FName: member.FullName,
 		Email: member.Email,
 		Phone: member.PhoneNumber,
 	}
 
-	randomID := uuid.New()
-
-	orderID := fmt.Sprintf("LOAN-%s", strings.ToUpper(randomID.String()))
+	orderID := fmt.Sprintf("LOAN-%s%d%d", member.PhoneNumber, member.ID, fineItems[0].ID)
 	
-	snapRequest, err := svc.helper.CreatePaymentLink(snapClient, orderID, totalPrice, midtransItems, customer)
+	snapRequest, err := svc.helper.CreatePaymentLink(orderID, totalPrice, midtransItems, customer)
 
 	if err != nil {
 		return nil, err.Error()
