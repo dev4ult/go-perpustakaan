@@ -1,11 +1,16 @@
 package helpers
 
 import (
+	"perpustakaan/config"
+	"perpustakaan/utils"
+
 	"github.com/midtrans/midtrans-go"
 	"github.com/midtrans/midtrans-go/snap"
 )
 
-func (h *helper) CreatePaymentLink(snapClient snap.Client, orderID string, totalPrice int64, items []midtrans.ItemDetails, customer midtrans.CustomerDetails) (*snap.Response, error) {
+func (h *helper) CreatePaymentLink(orderID string, totalPrice int64, items []midtrans.ItemDetails, customer midtrans.CustomerDetails) (*snap.Response, error) {
+	cfg := config.LoadServerConfig()
+	snapClient := utils.SnapClient(cfg.MT_SERVER_KEY)
 	snapRequest := &snap.Request{
 		TransactionDetails: midtrans.TransactionDetails{
 			OrderID: orderID,

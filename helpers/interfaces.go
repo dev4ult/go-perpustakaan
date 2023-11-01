@@ -12,7 +12,7 @@ type Helper interface {
 	GenerateHash(password string) string
 	GenerateToken(id int, role string) *JSONWebToken
 	VerifyHash(password, hashed string) bool
-	CreatePaymentLink(snapClient snap.Client, orderID string, totalPrice int64, items []midtrans.ItemDetails, customer midtrans.CustomerDetails) (*snap.Response, error)
+	CreatePaymentLink(orderID string, totalPrice int64, items []midtrans.ItemDetails, customer midtrans.CustomerDetails) (*snap.Response, error)
 }
 
 type helper struct{}

@@ -41,25 +41,25 @@ func (_m *Helper) CheckTransaction(orderID string) (string, error) {
 	return r0, r1
 }
 
-// CreatePaymentLink provides a mock function with given fields: snapClient, orderID, totalPrice, items, customer
-func (_m *Helper) CreatePaymentLink(snapClient snap.Client, orderID string, totalPrice int64, items []midtrans.ItemDetails, customer midtrans.CustomerDetails) (*snap.Response, error) {
-	ret := _m.Called(snapClient, orderID, totalPrice, items, customer)
+// CreatePaymentLink provides a mock function with given fields: orderID, totalPrice, items, customer
+func (_m *Helper) CreatePaymentLink(orderID string, totalPrice int64, items []midtrans.ItemDetails, customer midtrans.CustomerDetails) (*snap.Response, error) {
+	ret := _m.Called(orderID, totalPrice, items, customer)
 
 	var r0 *snap.Response
 	var r1 error
-	if rf, ok := ret.Get(0).(func(snap.Client, string, int64, []midtrans.ItemDetails, midtrans.CustomerDetails) (*snap.Response, error)); ok {
-		return rf(snapClient, orderID, totalPrice, items, customer)
+	if rf, ok := ret.Get(0).(func(string, int64, []midtrans.ItemDetails, midtrans.CustomerDetails) (*snap.Response, error)); ok {
+		return rf(orderID, totalPrice, items, customer)
 	}
-	if rf, ok := ret.Get(0).(func(snap.Client, string, int64, []midtrans.ItemDetails, midtrans.CustomerDetails) *snap.Response); ok {
-		r0 = rf(snapClient, orderID, totalPrice, items, customer)
+	if rf, ok := ret.Get(0).(func(string, int64, []midtrans.ItemDetails, midtrans.CustomerDetails) *snap.Response); ok {
+		r0 = rf(orderID, totalPrice, items, customer)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*snap.Response)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(snap.Client, string, int64, []midtrans.ItemDetails, midtrans.CustomerDetails) error); ok {
-		r1 = rf(snapClient, orderID, totalPrice, items, customer)
+	if rf, ok := ret.Get(1).(func(string, int64, []midtrans.ItemDetails, midtrans.CustomerDetails) error); ok {
+		r1 = rf(orderID, totalPrice, items, customer)
 	} else {
 		r1 = ret.Error(1)
 	}
