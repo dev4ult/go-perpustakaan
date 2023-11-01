@@ -6,6 +6,7 @@ import (
 	"perpustakaan/features/book"
 	"perpustakaan/features/book/dtos"
 	"perpustakaan/features/book/mocks"
+	helperMocks "perpustakaan/helpers/mocks"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -13,7 +14,8 @@ import (
 
 func TestFindAll(t *testing.T) {
 	var repository = mocks.NewRepository(t)
-	var service = New(repository)
+	var helper = helperMocks.NewHelper(t)
+	var service = New(repository, helper)
 
 	var books = []dtos.ResBook{
 		{
@@ -54,7 +56,8 @@ func TestFindAll(t *testing.T) {
 
 func TestFindByID(t *testing.T) {
 	var repository = mocks.NewRepository(t)
-	var service = New(repository)
+	var helper = helperMocks.NewHelper(t)
+	var service = New(repository, helper)
 
 	var book = dtos.ResBook{
 		Title: "Dark Gathering",        
@@ -91,11 +94,12 @@ func TestFindByID(t *testing.T) {
 
 func TestCreate(t *testing.T) {
 	var repository = mocks.NewRepository(t)
-	var service = New(repository)
+	var helper = helperMocks.NewHelper(t)
+	var service = New(repository, helper)
 
 	var validBook = book.Book{
 		Title: "Dark Gathering",        
-		CoverImage: "",      
+		CoverImage: "cloudinary-image-link.example",      
 		Summary: "Lorem Ipsum dolor sit amet.",         
 		PublicationYear: 2023, 
 		Quantity: 10,        
@@ -105,9 +109,11 @@ func TestCreate(t *testing.T) {
 		PublisherID: 1, 
 	}
 
-	var invalidBook = book.Book{}
+	var invalidBook = book.Book{
+		CoverImage: "cloudinary-image-link.example",      
+	}
 	
-	var inputBook = dtos.InputBook{
+	var input = dtos.InputBook{
 		Title: "Dark Gathering",        
 		Summary: "Lorem Ipsum dolor sit amet.",         
 		PublicationYear: 2023, 
@@ -121,30 +127,47 @@ func TestCreate(t *testing.T) {
 	var emptyInput = dtos.InputBook{}
 
 	var bookCover multipart.File = nil
+	var folderName = "book-cover"
 
 	t.Run("Success", func(t *testing.T) {
+		helper.On("UploadImage", folderName, bookCover).Return("cloudinary-image-link.example", nil).Once()
 		repository.On("Insert", validBook).Return(1, nil).Once()
 
-		result, message := service.Create(inputBook, bookCover)
+		result, message := service.Create(input, bookCover)
 		assert.Empty(t, message)
 		assert.NotNil(t, result)
 		assert.Equal(t, result.Title, validBook.Title)
 		repository.AssertExpectations(t)
 	})
 	
-	t.Run("Failed Mapping Request", func(t *testing.T) {
-		repository.On("Insert", invalidBook).Return(0, errors.New("test")).Once()
+	t.Run("Failed : Error When Insert", func(t *testing.T) {
+		helper.On("UploadImage", folderName, bookCover).Return("cloudinary-image-link.example", nil).Once()
+		repository.On("Insert", invalidBook).Return(0, errors.New("error when insert")).Once()
 
 		result, message := service.Create(emptyInput, bookCover)
 		assert.NotEmpty(t, message)
 		assert.Nil(t, result)
 		repository.AssertExpectations(t)
 	})
+
+	t.Run("Failed : Error Upload As Empty Image", func(t *testing.T) {
+		validBook.CoverImage = ""
+		helper.On("UploadImage", folderName, bookCover).Return("", errors.New("error when upload")).Once()
+		repository.On("Insert", validBook).Return(1, nil).Once()
+
+		result, message := service.Create(input, bookCover)
+		assert.Empty(t, message)
+		assert.Empty(t, result.CoverImage)
+		assert.NotNil(t, result)
+		repository.AssertExpectations(t)
+	})
+
 }
 
 func TestModify(t *testing.T) {
 	var repository = mocks.NewRepository(t)
-	var service = New(repository)
+	var helper = helperMocks.NewHelper(t)
+	var service = New(repository, helper)
 
 	var validBook = book.Book{
 		Title: "Dark Gathering",        
@@ -196,7 +219,8 @@ func TestModify(t *testing.T) {
 
 func TestDelete(t *testing.T) {
 	var repository = mocks.NewRepository(t)
-	var service = New(repository)
+	var helper = helperMocks.NewHelper(t)
+	var service = New(repository, helper)
 
 	var bookID = 1
 	t.Run("Success", func(t *testing.T) {

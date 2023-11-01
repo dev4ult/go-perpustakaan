@@ -5,6 +5,7 @@ import (
 	"perpustakaan/features/member"
 	"perpustakaan/features/member/dtos"
 	"perpustakaan/features/member/mocks"
+	helperMocks "perpustakaan/helpers/mocks"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -12,7 +13,8 @@ import (
 
 func TestFindAll(t *testing.T) {
 	var repository = mocks.NewRepository(t)
-	var service = New(repository)
+	var helper = helperMocks.NewHelper(t)
+	var service = New(repository, helper)
 
 	var members = []member.Member{
 		{
@@ -52,7 +54,8 @@ func TestFindAll(t *testing.T) {
 
 func TestFindByID(t *testing.T) {
 	var repository = mocks.NewRepository(t)
-	var service = New(repository)
+	var helper = helperMocks.NewHelper(t)
+	var service = New(repository, helper)
 
 	var member = member.Member{
 		ID: 1,
@@ -87,13 +90,14 @@ func TestFindByID(t *testing.T) {
 
 func TestCreate(t *testing.T) {
 	var repository = mocks.NewRepository(t)
-	var service = New(repository)
+	var helper = helperMocks.NewHelper(t)
+	var service = New(repository, helper)
 
 	var validMember = member.Member{
 		FullName: "Sarbin Sisarbin",
 		CredentialNumber: "2107411026",
 		Email: "sarbin@example.com",
-		Password: "sarbin123", 
+		Password: "randomgeneratedhash", 
 		PhoneNumber: "080000000000",
 		Address: "Jalan Hj. Raisin",
 	}
@@ -114,6 +118,7 @@ func TestCreate(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
 		repository.On("SelectByEmail", input.Email).Return(nil, errors.New("record not found")).Once()
 		repository.On("SelectByCredentialNumber", input.CredentialNumber).Return(nil, errors.New("record not found")).Once()
+		helper.On("GenerateHash", input.Password).Return("randomgeneratedhash").Once()
 		repository.On("Insert", validMember).Return(1, nil).Once()
 
 		result, message := service.Create(input)
@@ -144,9 +149,22 @@ func TestCreate(t *testing.T) {
 	})
 
 	t.Run("Failed : Error When Insert", func(t *testing.T) {
+		invalidMember.Password = "randomgeneratedhash"
 		repository.On("SelectByEmail", emptyInput.Email).Return(nil, errors.New("record not found")).Once()
 		repository.On("SelectByCredentialNumber", emptyInput.CredentialNumber).Return(nil, errors.New("record not found")).Once()
+		helper.On("GenerateHash", emptyInput.Password).Return("randomgeneratedhash").Once()
 		repository.On("Insert", invalidMember).Return(0, errors.New("error when insert")).Once()
+
+		result, message := service.Create(emptyInput)
+		assert.Nil(t, result)
+		assert.NotEmpty(t, message)
+		repository.AssertExpectations(t)
+	})
+
+	t.Run("Failed : Error When Hashing Password", func(t *testing.T) {
+		repository.On("SelectByEmail", emptyInput.Email).Return(nil, errors.New("record not found")).Once()
+		repository.On("SelectByCredentialNumber", emptyInput.CredentialNumber).Return(nil, errors.New("record not found")).Once()
+		helper.On("GenerateHash", emptyInput.Password).Return("").Once()
 
 		result, message := service.Create(emptyInput)
 		assert.Nil(t, result)
@@ -157,13 +175,14 @@ func TestCreate(t *testing.T) {
 
 func TestModify(t *testing.T) {
 	var repository = mocks.NewRepository(t)
-	var service = New(repository)
+	var helper = helperMocks.NewHelper(t)
+	var service = New(repository, helper)
 
 	var validMember = member.Member{
 		FullName: "Sarbin Sisarbin",
 		CredentialNumber: "2107411026",
 		Email: "sarbin@example.com",
-		Password: "sarbin123", 
+		Password: "randomgeneratedhash", 
 		PhoneNumber: "080000000000",
 		Address: "Jalan Hj. Raisin",
 	}
@@ -185,6 +204,7 @@ func TestModify(t *testing.T) {
 
 	t.Run("Success", func(t *testing.T) {
 		validMember.ID = memberID
+		helper.On("GenerateHash", input.Password).Return("randomgeneratedhash").Once()
 		repository.On("Update", validMember).Return(1, nil).Once()
 
 		result, message := service.Modify(input, memberID)
@@ -193,8 +213,19 @@ func TestModify(t *testing.T) {
 		repository.AssertExpectations(t)
 	})
 
-	t.Run("Failed", func(t *testing.T) {
-		repository.On("Update", invalidMember).Return(0, errors.New("record not found")).Once()
+	t.Run("Failed : Error When Update", func(t *testing.T) {
+		invalidMember.Password = "randomgeneratedhash"
+		helper.On("GenerateHash", emptyInput.Password).Return("randomgeneratedhash").Once()
+		repository.On("Update", invalidMember).Return(0, errors.New("error when update")).Once()
+
+		result, message := service.Modify(emptyInput, 0)
+		assert.Equal(t, false, result)
+		assert.NotEmpty(t, message)
+		repository.AssertExpectations(t)
+	})
+
+	t.Run("Failed : Error When Hashing Password", func(t *testing.T) {
+		helper.On("GenerateHash", emptyInput.Password).Return("").Once()
 
 		result, message := service.Modify(emptyInput, 0)
 		assert.Equal(t, false, result)
@@ -205,7 +236,8 @@ func TestModify(t *testing.T) {
 
 func TestRemove(t *testing.T) {
 	var repository = mocks.NewRepository(t)
-	var service = New(repository)
+	var helper = helperMocks.NewHelper(t)
+	var service = New(repository, helper)
 
 	var memberID = 1
 

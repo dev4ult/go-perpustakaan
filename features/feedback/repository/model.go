@@ -5,7 +5,6 @@ import (
 	"perpustakaan/features/feedback"
 	"perpustakaan/features/feedback/dtos"
 	"perpustakaan/features/member"
-	"perpustakaan/helpers"
 
 	"gorm.io/gorm"
 )
@@ -42,8 +41,6 @@ func (mdl *model) Paginate(page int, size int, member string, priority string) (
 }
 
 func (mdl *model) Insert(newFeedback feedback.Feedback) (*dtos.ResFeedback, error) {
-	newFeedback.PriorityStatus = helpers.GetPrediction(newFeedback.Comment)
-	
 	if err := mdl.db.Create(&newFeedback).Error; err != nil {
 		return nil, err
 	}

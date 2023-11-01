@@ -14,13 +14,13 @@ type JSONWebToken struct {
 	RefreshToken string `json:"refresh-token"`
 }
 
-func GenerateToken(id int, role string) *JSONWebToken {
+func (h *helper) GenerateToken(id int, role string) *JSONWebToken {
 	config := config.LoadServerConfig()
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"id": id,
 		"role": role,
 		"iat": time.Now().Unix(),
-		"exp": time.Now().Add(time.Hour * 168 * 2).Unix(),
+		"exp": time.Now().Add(time.Second * 15).Unix(),
 	})
 
 	access, err := token.SignedString([]byte(config.SIGN_KEY))
@@ -37,7 +37,24 @@ func GenerateToken(id int, role string) *JSONWebToken {
 	}
 }
 
-func ExtractToken(accessToken string, isRefreshToken bool) map[string]any {
+func getRefreshToken(id int, role string, refreshKey string) string {
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"id": id,
+		"role": role,
+		"exp": time.Now().Add(time.Hour * 24).Unix(),
+	})
+
+	refresh, err := token.SignedString([]byte(refreshKey))
+
+	if err != nil {
+		log.Error(err.Error())
+		refresh = ""
+	}
+
+	return refresh
+}
+
+func  ExtractToken(accessToken string, isRefreshToken bool) map[string]any {
 	cfg := config.LoadServerConfig()
 	key := []byte(cfg.SIGN_KEY)
 
@@ -68,19 +85,3 @@ func ExtractToken(accessToken string, isRefreshToken bool) map[string]any {
 	return nil
 }
 
-func getRefreshToken(id int, role string, refreshKey string) string {
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"id": id,
-		"role": role,
-		"exp": time.Now().Add(time.Hour * 24).Unix(),
-	})
-
-	refresh, err := token.SignedString([]byte(refreshKey))
-
-	if err != nil {
-		log.Error(err.Error())
-		refresh = ""
-	}
-
-	return refresh
-}

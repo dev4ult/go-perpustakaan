@@ -2,7 +2,7 @@ package helpers
 
 import "golang.org/x/crypto/bcrypt"
 
-func GenerateHash(password string) string {
+func (h *helper) GenerateHash(password string) string {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
 	if err != nil {
 		return ""
@@ -10,7 +10,7 @@ func GenerateHash(password string) string {
     return string(bytes)
 }
 
-func VerifyHash(password, hashed string) bool {
+func (h *helper) VerifyHash(password, hashed string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hashed), []byte(password))
 	return err == nil
 }

@@ -1,7 +1,6 @@
 package helpers
 
 func Response(message string, datas ...map[string]any) map[string]any {
-
 	var res = map[string]any{
 		"message": message,
 	}

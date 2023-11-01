@@ -17,11 +17,13 @@ import (
 
 type service struct {
 	model transaction.Repository
+	helper helpers.Helper
 }
 
-func New(model transaction.Repository) transaction.Usecase {
+func New(model transaction.Repository, helper helpers.Helper) transaction.Usecase {
 	return &service {
 		model: model,
+		helper: helper,
 	}
 }
 
@@ -127,7 +129,7 @@ func (svc *service) Create(newTransaction dtos.InputTransaction) (*dtos.ResTrans
 
 	orderID := fmt.Sprintf("LOAN-%s", strings.ToUpper(randomID.String()))
 	
-	snapRequest, err := helpers.CreatePaymentLink(snapClient, orderID, totalPrice, midtransItems, customer)
+	snapRequest, err := svc.helper.CreatePaymentLink(snapClient, orderID, totalPrice, midtransItems, customer)
 
 	if err != nil {
 		return nil, err.Error()
@@ -224,7 +226,11 @@ func (svc *service) VerifyPayment(payload map[string]any) (bool, string) {
 		return false, "Invalid Notification!"
 	}
 
-	status, err := svc.model.GetTransactionStatusByOrderID(orderID)
+	status, err := svc.helper.CheckTransaction(orderID)
+	if err != nil {
+		return false, err.Error()
+	}
+
 	if err != nil {
 		return false, err.Error()
 	}

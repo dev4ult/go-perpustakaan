@@ -5,7 +5,7 @@ import (
 	"github.com/midtrans/midtrans-go/snap"
 )
 
-func CreatePaymentLink(snapClient snap.Client, orderID string, totalPrice int64, items []midtrans.ItemDetails, customer midtrans.CustomerDetails) (*snap.Response, error) {
+func (h *helper) CreatePaymentLink(snapClient snap.Client, orderID string, totalPrice int64, items []midtrans.ItemDetails, customer midtrans.CustomerDetails) (*snap.Response, error) {
 	snapRequest := &snap.Request{
 		TransactionDetails: midtrans.TransactionDetails{
 			OrderID: orderID,

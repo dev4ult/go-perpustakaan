@@ -4,7 +4,6 @@ import (
 	"perpustakaan/features/member"
 	"perpustakaan/features/transaction"
 	"perpustakaan/features/transaction/dtos"
-	"perpustakaan/helpers"
 
 	"gorm.io/gorm"
 )
@@ -168,13 +167,4 @@ func (mdl *model) UnsetTransactionIDs(transactionID int) (bool, error) {
 	}
 	
 	return true, nil
-}
-
-func (mdl *model) GetTransactionStatusByOrderID(orderID string) (string, error) {
-	status, err := helpers.CheckTransaction(orderID)
-	if err != nil {
-		return "", err
-	}
-	
-	return status, nil
 }

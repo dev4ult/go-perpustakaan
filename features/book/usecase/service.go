@@ -11,11 +11,13 @@ import (
 
 type service struct {
 	model book.Repository
+	helper helpers.Helper
 }
 
-func New(model book.Repository) book.Usecase {
+func New(model book.Repository, helper helpers.Helper) book.Usecase {
 	return &service {
 		model: model,
+		helper: helper,
 	}
 }
 
@@ -46,7 +48,7 @@ func (svc *service) Create(newBook dtos.InputBook, bookCover multipart.File) (*d
 		return nil, err.Error()
 	}
 
-	imageURL, err := helpers.UploadImage("book-cover", bookCover)
+	imageURL, err := svc.helper.UploadImage("book-cover", bookCover)
 	
 	if err != nil {
 		imageURL = ""

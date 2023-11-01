@@ -76,14 +76,17 @@ func (ctl *controller) StaffRegistration() echo.HandlerFunc {
 
 func (ctl *controller) Refresh() echo.HandlerFunc {
 	return func(ctx echo.Context) error {
-		refreshToken := ctx.Request().Header.Get("Authorization")
-		var	authorization dtos.Authorization
-		
-		ctx.Bind(&authorization)
+		input := ctx.Get("request").(*dtos.Authorization)
+		userID := int(ctx.Get("user-id").(float64))
+		role := ctx.Get("role").(string)
 
-		refreshToken = refreshToken[len("Bearer "):]
+		accessTokenClaim := helpers.ExtractToken(input.AccessToken, false)
+	
+		if accessTokenClaim != nil {
+			return ctx.JSON(500, helpers.Response("Access Token Still Valid"))
+		}
 
-		newToken, message := ctl.service.RefreshToken(authorization.AccessToken, refreshToken)
+		newToken, message := ctl.service.RefreshToken(userID, role)
 
 		if message != "" {
 			return ctx.JSON(500, helpers.Response(message))

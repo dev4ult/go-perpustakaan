@@ -11,7 +11,7 @@ import (
 	"github.com/labstack/gommon/log"
 )
 
-func GetPrediction(comment string) string {
+func (h *helper) GetPrediction(comment string) string {
 	var highestLabel string = ""
 	var highestScore float64
 

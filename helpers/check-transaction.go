@@ -6,7 +6,7 @@ import (
 	"perpustakaan/utils"
 )
 
-func CheckTransaction(orderID string) (string, error) {
+func (h *helper) CheckTransaction(orderID string) (string, error) {
 	cfg := config.LoadServerConfig()
 	response, err := utils.CoreAPIClient(cfg.MT_SERVER_KEY).CheckTransaction(orderID)
 

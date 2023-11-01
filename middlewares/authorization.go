@@ -26,17 +26,19 @@ func Authorization(role string, options ...bool) echo.MiddlewareFunc {
 			token := auth[len("Bearer "):]
 			claims := helpers.ExtractToken(token, isRefreshToken)
 
+			if claims == nil {
+				return ctx.JSON(401, helpers.Response("Token is invalid or expired!"))
+			}
+
+			ctx.Set("user-id", claims["user-id"])
+			ctx.Set("role", claims["role"])
+
 			if role == "all" {
 				return next(ctx)
 			}
 			
 			if role != claims["role"] {
 				return ctx.JSON(401, helpers.Response("This user can't access for this Endpoint!"))
-			}
-			
-			if !isRefreshToken {
-				ctx.Set("user-id", claims["user-id"])
-				ctx.Set("role", claims["role"])
 			}
 			
 			return next(ctx)

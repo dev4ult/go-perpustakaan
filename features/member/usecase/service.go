@@ -3,17 +3,20 @@ package usecase
 import (
 	"perpustakaan/features/member"
 	"perpustakaan/features/member/dtos"
+	"perpustakaan/helpers"
 
 	"github.com/mashingan/smapping"
 )
 
 type service struct {
 	model member.Repository
+	helper helpers.Helper
 }
 
-func New(model member.Repository) member.Usecase {
+func New(model member.Repository, helper helpers.Helper) member.Usecase {
 	return &service {
 		model: model,
+		helper: helper,
 	}
 }
 
@@ -72,6 +75,13 @@ func (svc *service) Create(newMember dtos.InputMember) (*dtos.ResMember, string)
 	if err := smapping.FillStruct(&member, smapping.MapFields(newMember)); err != nil {
 		return nil, err.Error()
 	}
+	
+	hashPassword := svc.helper.GenerateHash(member.Password)
+	if hashPassword == "" {
+		return nil, "Error When Hashing Password"
+	}
+
+	member.Password = hashPassword
 
 	_, err := svc.model.Insert(member)
 
@@ -94,6 +104,13 @@ func (svc *service) Modify(memberData dtos.InputMember, memberID int) (bool, str
 	if err := smapping.FillStruct(&newMember, smapping.MapFields(memberData)); err != nil {
 		return false, err.Error()
 	}
+
+	hashPassword := svc.helper.GenerateHash(newMember.Password)
+	if hashPassword == "" {
+		return false, "Error When Hashing Password"
+	}
+
+	newMember.Password = hashPassword
 
 	newMember.ID = memberID
 	_, err := svc.model.Update(newMember)

@@ -17,7 +17,7 @@ type Usecase interface {
 	VerifyLogin(credential string, password string, isStaff bool) (*dtos.ResAuthorization, string)
 	FindLibrarianByStaffID(staffID string) (*dtos.ResLibrarian, string)
 	RegisterAStaff(newLibrarian dtos.InputStaffRegistration) (*dtos.ResLibrarian, string)
-	RefreshToken(accessToken, refreshToken string) (*dtos.Token, string)
+	RefreshToken(userID int, role string) (*dtos.Token, string)
 }
 
 type Handler interface {

@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"perpustakaan/config"
+	"perpustakaan/helpers"
 	m "perpustakaan/middlewares"
 	"perpustakaan/routes"
 	"perpustakaan/utils"
@@ -72,17 +73,19 @@ func main() {
 	e.Logger.Fatal(e.Start(fmt.Sprintf(":%d", cfg.SERVER_PORT)))
 }
 
+var helper = helpers.New()
+
 func AuthHandler() auth.Handler {
 	db := utils.InitDB()
 	repo := ar.New(db)
-	uc := au.New(repo)
+	uc := au.New(repo, helper)
 	return ah.New(uc)
 }
 
 func BookHandler() book.Handler {
 	db := utils.InitDB()
 	repo := br.New(db)
-	uc := bu.New(repo)
+	uc := bu.New(repo, helper)
 	return bh.New(uc)
 }
 
@@ -96,7 +99,7 @@ func PublisherHandler() publisher.Handler {
 func MemberHandler() member.Handler {
 	db := utils.InitDB()
 	repo := mr.New(db)
-	uc := mu.New(repo)
+	uc := mu.New(repo, helper)
 	return mh.New(uc)
 }
 
@@ -110,7 +113,7 @@ func AuthorHandler() author.Handler {
 func FeedbackHandler() feedback.Handler {
 	db := utils.InitDB()
 	repo := fr.New(db)
-	uc := fu.New(repo)
+	uc := fu.New(repo, helper)
 	return fh.New(uc)
 }
 
@@ -124,6 +127,6 @@ func LoanHistoryHandler() loan_history.Handler {
 func TransactionHandler() transaction.Handler {
 	db := utils.InitDB()
 	repo := tr.New(db)
-	uc := tu.New(repo)
+	uc := tu.New(repo, helper)
 	return th.New(uc)
 }

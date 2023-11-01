@@ -10,11 +10,13 @@ import (
 
 type service struct {
 	model auth.Repository
+	helper helpers.Helper
 }
 
-func New(model auth.Repository) auth.Usecase {
+func New(model auth.Repository, helper helpers.Helper) auth.Usecase {
 	return &service {
 		model: model,
+		helper: helper,
 	}
 }
 
@@ -51,8 +53,8 @@ func (svc *service) VerifyLogin(credential string, password string, isLibrarian 
 		return nil, "User Not Found"
 	}
 	
-	if matchPassword := helpers.VerifyHash(password, userTemp.Password); matchPassword {
-		token := helpers.GenerateToken(userTemp.ID, role)
+	if matchPassword := svc.helper.VerifyHash(password, userTemp.Password); matchPassword {
+		token := svc.helper.GenerateToken(userTemp.ID, role)
 		response := dtos.ResAuthorization{
 			FullName: userTemp.FullName,
 			AccessToken: token.AccessToken,
@@ -88,7 +90,7 @@ func (svc *service) RegisterAStaff(newLibrarianInput dtos.InputStaffRegistration
 		return nil, err.Error()
 	}
 
-	hashPassword := helpers.GenerateHash(librarian.Password)
+	hashPassword := svc.helper.GenerateHash(librarian.Password)
 	if hashPassword == "" {
 		return nil, "Error When Hashing The Password!"
 	}
@@ -109,14 +111,8 @@ func (svc *service) RegisterAStaff(newLibrarianInput dtos.InputStaffRegistration
 	return &resLibrarian, ""
 }
 
-func (svc *service) RefreshToken(accessToken, refreshToken string) (*dtos.Token, string) {
-	claims := helpers.ExtractToken(refreshToken, true)
-	
-	if claims == nil {
-		return nil, "There Is No Claims!"
-	}
-	
-	token := helpers.GenerateToken(claims["id"].(int), claims["role"].(string))
+func (svc *service) RefreshToken(userID int, role string) (*dtos.Token, string) {
+	token := svc.helper.GenerateToken(userID, role)
 
 	if token == nil {
 		return nil, "Error When Generating Token!"

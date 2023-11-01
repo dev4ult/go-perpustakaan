@@ -8,7 +8,7 @@ import (
 	"github.com/cloudinary/cloudinary-go/v2/api/uploader"
 )
 
-func UploadImage(folder string, file any) (string, error) {
+func (h *helper) UploadImage(folder string, file any) (string, error) {
 	cfg := config.LoadServerConfig()
 	cld, err := cloudinary.NewFromURL(cfg.CLOUD_URL)
 

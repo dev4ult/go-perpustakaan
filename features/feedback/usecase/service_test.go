@@ -5,6 +5,7 @@ import (
 	"perpustakaan/features/feedback"
 	"perpustakaan/features/feedback/dtos"
 	"perpustakaan/features/feedback/mocks"
+	helperMocks "perpustakaan/helpers/mocks"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -12,7 +13,8 @@ import (
 
 func TestFindAll(t *testing.T) {
 	var repository = mocks.NewRepository(t)
-	var service = New(repository)
+	var helper = helperMocks.NewHelper(t)
+	var service = New(repository, helper)
 
 	var feedbackJoinReply = []dtos.FeedbackJoinReply{
 		{
@@ -50,7 +52,8 @@ func TestFindAll(t *testing.T) {
 
 func TestFindByID(t *testing.T) {
 	var repository = mocks.NewRepository(t)
-	var service = New(repository)
+	var helper = helperMocks.NewHelper(t)
+	var service = New(repository, helper)
 
 	var feedbackWithReply = dtos.FeedbackWithReply{
 		Member: "Sarbin Sisarbin",
@@ -82,7 +85,8 @@ func TestFindByID(t *testing.T) {
 
 func TestCreate(t *testing.T) {
 	var repository = mocks.NewRepository(t)
-	var service = New(repository)
+	var helper = helperMocks.NewHelper(t)
+	var service = New(repository, helper)
 
 	var response = dtos.ResFeedback{
 		Member: "Anonymous",
@@ -98,20 +102,25 @@ func TestCreate(t *testing.T) {
 
 	var validFeedback = feedback.Feedback{
 		Comment: "Performa Lambat",
+		PriorityStatus: "high",
 	}
 
 	var invalidFeedback = feedback.Feedback{}
 
 	t.Run("Success", func(t *testing.T) {
+		helper.On("GetPrediction", input.Comment).Return("high").Once()
 		repository.On("Insert", validFeedback).Return(&response, nil).Once()
 
 		result, message := service.Create(input)
 		assert.Equal(t, response.Member, result.Member)
+		assert.Equal(t, response.PriorityStatus, result.PriorityStatus)
 		assert.Empty(t, message)
 		repository.AssertExpectations(t)
 	})
 
 	t.Run("Failed", func(t *testing.T) {
+		invalidFeedback.PriorityStatus = "low"
+		helper.On("GetPrediction", emptyInput.Comment).Return("low").Once()
 		repository.On("Insert", invalidFeedback).Return(nil, errors.New("record not found")).Once()
 
 		result, message := service.Create(emptyInput)
@@ -123,7 +132,8 @@ func TestCreate(t *testing.T) {
 
 func TestAddAReply(t *testing.T) {
 	var repository = mocks.NewRepository(t)
-	var service = New(repository)
+	var helper = helperMocks.NewHelper(t)
+	var service = New(repository, helper)
 
 	var reply = dtos.InputReply{
 		StaffID: 1,
@@ -168,7 +178,8 @@ func TestAddAReply(t *testing.T) {
 
 func TestRemove(t *testing.T) {
 	var repository = mocks.NewRepository(t)
-	var service = New(repository)
+	var helper = helperMocks.NewHelper(t)
+	var service = New(repository, helper)
 
 	var feedbackID = 1
 

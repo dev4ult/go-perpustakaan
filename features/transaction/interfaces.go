@@ -21,7 +21,6 @@ type Repository interface {
 	SelectTransactionByOrderID(orderID string) (*Transaction, error)
 	UpdateStatus(transactionID int, status string) (bool, error)
 	UnsetTransactionIDs(transactionID int) (bool, error)
-	GetTransactionStatusByOrderID(orderID string) (string, error)
 }
 
 type Usecase interface {

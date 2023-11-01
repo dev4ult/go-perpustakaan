@@ -3,17 +3,20 @@ package usecase
 import (
 	"perpustakaan/features/feedback"
 	"perpustakaan/features/feedback/dtos"
+	"perpustakaan/helpers"
 
 	"github.com/mashingan/smapping"
 )
 
 type service struct {
 	model feedback.Repository
+	helper helpers.Helper
 }
 
-func New(model feedback.Repository) feedback.Usecase {
+func New(model feedback.Repository, helper helpers.Helper) feedback.Usecase {
 	return &service {
 		model: model,
+		helper: helper,
 	}
 }
 
@@ -60,6 +63,8 @@ func (svc *service) Create(newFeedback dtos.InputFeedback) (*dtos.FeedbackWithRe
 	if err := smapping.FillStruct(&feedback, smapping.MapFields(newFeedback)); err != nil {
 		return nil, err.Error()
 	}
+
+	feedback.PriorityStatus = svc.helper.GetPrediction(newFeedback.Comment)
 	
 	res, err := svc.model.Insert(feedback)
 	if err != nil {
