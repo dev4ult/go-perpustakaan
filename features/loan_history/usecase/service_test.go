@@ -29,12 +29,13 @@ func TestFindAll(t *testing.T) {
 
 	var page = 1
 	var size = 10
-	var searchKey = ""
+	var memberName = ""
+	var status = ""
 
 	t.Run("Success", func(t *testing.T) {
-		repository.On("Paginate", page, size, searchKey).Return(loanHistories, nil).Once()
+		repository.On("Paginate", page, size, memberName, status).Return(loanHistories, nil).Once()
 		
-		result, message := service.FindAll(page, size, searchKey)
+		result, message := service.FindAll(page, size, memberName, status)
 		assert.NotNil(t, result)
 		assert.Equal(t, loanHistories[0].FullName, result[0].FullName)
 		assert.Empty(t, message)
@@ -42,9 +43,9 @@ func TestFindAll(t *testing.T) {
 	})
 
 	t.Run("Failed", func(t *testing.T) {
-		repository.On("Paginate", page, size, searchKey).Return(nil, errors.New("record not found")).Once()
+		repository.On("Paginate", page, size, memberName, status).Return(nil, errors.New("record not found")).Once()
 		
-		result, message := service.FindAll(page, size, searchKey)
+		result, message := service.FindAll(page, size, memberName, status)
 		assert.Nil(t, result)
 		assert.NotEmpty(t, message)
 		repository.AssertExpectations(t)
@@ -196,24 +197,24 @@ func TestModifyStatus(t *testing.T) {
 	var service = New(repository)
 
 	var status = 2
-	
+	var statusBefore = "On Hold"
 	var invalidStatus = 999
 
 	var loanHistoryID = 1
 
 	t.Run("Success", func(t *testing.T) {
-		repository.On("UpdateStatus", status, loanHistoryID).Return(1, nil).Once()
+		repository.On("UpdateStatus", status, statusBefore, loanHistoryID).Return(1, nil).Once()
 		
-		result, message := service.ModifyStatus(status, loanHistoryID)
+		result, message := service.ModifyStatus(status, statusBefore, loanHistoryID)
 		assert.Equal(t, true, result)
 		assert.Empty(t, message)
 		repository.AssertExpectations(t)
 	})
 
 	t.Run("Failed", func(t *testing.T) {
-		repository.On("UpdateStatus", invalidStatus, 0).Return(0, errors.New("record not found")).Once()
+		repository.On("UpdateStatus", invalidStatus, statusBefore, 0).Return(0, errors.New("record not found")).Once()
 		
-		result, message := service.ModifyStatus(invalidStatus, 0)
+		result, message := service.ModifyStatus(invalidStatus, statusBefore, 0)
 		assert.Equal(t, false, result)
 		assert.NotEmpty(t, message)
 		repository.AssertExpectations(t)
