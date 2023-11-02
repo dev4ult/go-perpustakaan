@@ -36,4 +36,4 @@ jobs:
             docker stop ${{ secrets.CNAME }}
             docker rm ${{ secrets.CNAME }}
             docker rmi ${{ secrets.DOCKERHUB_USERNAME }}/go-perpustakaan
-            docker run --name ${{ secrets.CNAME }} -p 8000:8000 -d -e DB_HOST=${{secrets.DB_HOST}} -e DB_PORT=3306 -e DB_USER=${{secrets.DB_USER}} -e DB_NAME=${{secrets.DB_NAME}} -e DB_PASS={{secrets.DB_PASS}} -e SIGN_KEY=${{secrets.SIGN_KEY}} -e REFRESH_KEY=${{secrets.REFRESH_KEY}} -e SERVER_PORT=8000 -e CLOUDINARY_URL=${{secrets.CDN_URL}} -e MT_SERVER_KEY=${{secrets.MT_SERVER_KEY}} -e HGF_TOKEN=${{secrets.HGF_TOKEN}} ${{ secrets.DOCKERHUB_USERNAME }}/go-perpustakaan
+            docker run --name ${{ secrets.CNAME }} -p 8000:8000 -d -e DB_HOST=${{secrets.DB_HOST}} -e DB_PORT=3306 -e DB_USER=${{secrets.DB_USER}} -e DB_NAME=${{secrets.DB_NAME}} -e DB_PASS=${{secrets.DB_PASS}} -e SIGN_KEY=${{secrets.SIGN_KEY}} -e REFRESH_KEY=${{secrets.REFRESH_KEY}} -e SERVER_PORT=8000 -e CLOUDINARY_URL=${{secrets.CDN_URL}} -e MT_SERVER_KEY=${{secrets.MT_SERVER_KEY}} -e HGF_TOKEN=${{secrets.HGF_TOKEN}} ${{ secrets.DOCKERHUB_USERNAME }}/go-perpustakaan
