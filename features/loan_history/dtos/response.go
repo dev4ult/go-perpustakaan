@@ -9,4 +9,5 @@ type ResLoanHistory struct {
 	Title string `json:"title"`
 	CoverImage string `json:"cover-img"`
 	Summary string `json:"summary"`
+	TransactionStatus string `json:"transaction-status"`
 }

@@ -17,8 +17,8 @@ func New(model loan_history.Repository) loan_history.Usecase {
 	}
 }
 
-func (svc *service) FindAll(page int, size int, searchKey string) ([]dtos.ResLoanHistory, string) {
-	loanHistories, err := svc.model.Paginate(page, size, searchKey)
+func (svc *service) FindAll(page int, size int, memberName string, status string) ([]dtos.ResLoanHistory, string) {
+	loanHistories, err := svc.model.Paginate(page, size, memberName, status)
 
 	if err != nil {
 		return nil, err.Error()
@@ -71,8 +71,8 @@ func (svc *service) Modify(loanHistoryData dtos.InputLoanHistory, loanHistoryID 
 	return true, ""
 }
 
-func (svc *service) ModifyStatus(status, loanHistoryID int) (bool, string) {
-	_, err := svc.model.UpdateStatus(status, loanHistoryID)
+func (svc *service) ModifyStatus(status int, statusBefore string, loanHistoryID int) (bool, string) {
+	_, err := svc.model.UpdateStatus(status, statusBefore, loanHistoryID)
 
 	if err != nil {
 		return false, err.Error()

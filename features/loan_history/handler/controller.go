@@ -30,14 +30,15 @@ func (ctl *controller) GetLoanHistories() echo.HandlerFunc {
 		
 		page := pagination.Page
 		size := pagination.Size
-		searchKey := ctx.QueryParam("member")
+		memberName := ctx.QueryParam("member")
+		status := ctx.QueryParam("status")
 
 		if page <= 0 || size <= 0 {
 			page = 1
 			size = 10
 		}
 
-		loanHistories, message := ctl.service.FindAll(page, size, searchKey)
+		loanHistories, message := ctl.service.FindAll(page, size, memberName, status)
 
 		if message != "" {
 			return ctx.JSON(500, helper.Response(message))
@@ -93,10 +94,10 @@ func (ctl *controller) CreateLoanHistory() echo.HandlerFunc {
 func (ctl *controller) UpdateLoanHistory() echo.HandlerFunc {
 	return func (ctx echo.Context) error {
 		input := ctx.Get("request").(*dtos.InputLoanHistory)
-		loanHistoryID, errParam := strconv.Atoi(ctx.Param("id"))
+		loanHistoryID, err := strconv.Atoi(ctx.Param("id"))
 
-		if errParam != nil {
-			return ctx.JSON(400, helper.Response(errParam.Error()))
+		if err != nil {
+			return ctx.JSON(400, helper.Response(err.Error()))
 		}
 
 		loanHistory, message := ctl.service.FindByID(loanHistoryID)
@@ -118,10 +119,10 @@ func (ctl *controller) UpdateLoanHistory() echo.HandlerFunc {
 func (ctl *controller) UpdateLoanStatus() echo.HandlerFunc {
 	return func (ctx echo.Context) error {
 		input := ctx.Get("request").(*dtos.LoanStatus)
-		loanHistoryID, errParam := strconv.Atoi(ctx.Param("id"))
+		loanHistoryID, err := strconv.Atoi(ctx.Param("id"))
 
-		if errParam != nil {
-			return ctx.JSON(400, helper.Response(errParam.Error()))
+		if err != nil {
+			return ctx.JSON(400, helper.Response(err.Error()))
 		}
 
 		loanHistory, message := ctl.service.FindByID(loanHistoryID)
@@ -130,7 +131,7 @@ func (ctl *controller) UpdateLoanStatus() echo.HandlerFunc {
 			return ctx.JSON(404, helper.Response(message))
 		}
 		
-		patch, patchMessage := ctl.service.ModifyStatus(input.Status, loanHistoryID)
+		patch, patchMessage := ctl.service.ModifyStatus(input.Status, loanHistory.Status, loanHistoryID)
 
 		if !patch {
 			return ctx.JSON(500, helper.Response(patchMessage))
