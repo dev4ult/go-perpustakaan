@@ -64,25 +64,25 @@ func (_m *Repository) Insert(newLoanHistory loan_history.LoanHistory) (*dtos.Res
 	return r0, r1
 }
 
-// Paginate provides a mock function with given fields: page, size, searchKey
-func (_m *Repository) Paginate(page int, size int, searchKey string) ([]dtos.ResLoanHistory, error) {
-	ret := _m.Called(page, size, searchKey)
+// Paginate provides a mock function with given fields: page, size, memberName, status
+func (_m *Repository) Paginate(page int, size int, memberName string, status string) ([]dtos.ResLoanHistory, error) {
+	ret := _m.Called(page, size, memberName, status)
 
 	var r0 []dtos.ResLoanHistory
 	var r1 error
-	if rf, ok := ret.Get(0).(func(int, int, string) ([]dtos.ResLoanHistory, error)); ok {
-		return rf(page, size, searchKey)
+	if rf, ok := ret.Get(0).(func(int, int, string, string) ([]dtos.ResLoanHistory, error)); ok {
+		return rf(page, size, memberName, status)
 	}
-	if rf, ok := ret.Get(0).(func(int, int, string) []dtos.ResLoanHistory); ok {
-		r0 = rf(page, size, searchKey)
+	if rf, ok := ret.Get(0).(func(int, int, string, string) []dtos.ResLoanHistory); ok {
+		r0 = rf(page, size, memberName, status)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]dtos.ResLoanHistory)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(int, int, string) error); ok {
-		r1 = rf(page, size, searchKey)
+	if rf, ok := ret.Get(1).(func(int, int, string, string) error); ok {
+		r1 = rf(page, size, memberName, status)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -140,23 +140,23 @@ func (_m *Repository) Update(loanHistory loan_history.LoanHistory) (int, error) 
 	return r0, r1
 }
 
-// UpdateStatus provides a mock function with given fields: status, loanHistoryID
-func (_m *Repository) UpdateStatus(status int, loanHistoryID int) (int, error) {
-	ret := _m.Called(status, loanHistoryID)
+// UpdateStatus provides a mock function with given fields: status, statusBefore, loanHistoryID
+func (_m *Repository) UpdateStatus(status int, statusBefore string, loanHistoryID int) (int, error) {
+	ret := _m.Called(status, statusBefore, loanHistoryID)
 
 	var r0 int
 	var r1 error
-	if rf, ok := ret.Get(0).(func(int, int) (int, error)); ok {
-		return rf(status, loanHistoryID)
+	if rf, ok := ret.Get(0).(func(int, string, int) (int, error)); ok {
+		return rf(status, statusBefore, loanHistoryID)
 	}
-	if rf, ok := ret.Get(0).(func(int, int) int); ok {
-		r0 = rf(status, loanHistoryID)
+	if rf, ok := ret.Get(0).(func(int, string, int) int); ok {
+		r0 = rf(status, statusBefore, loanHistoryID)
 	} else {
 		r0 = ret.Get(0).(int)
 	}
 
-	if rf, ok := ret.Get(1).(func(int, int) error); ok {
-		r1 = rf(status, loanHistoryID)
+	if rf, ok := ret.Get(1).(func(int, string, int) error); ok {
+		r1 = rf(status, statusBefore, loanHistoryID)
 	} else {
 		r1 = ret.Error(1)
 	}
