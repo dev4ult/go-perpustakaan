@@ -58,7 +58,7 @@ func (ctl *controller) MemberDetails() echo.HandlerFunc {
 		memberID, err := strconv.Atoi(ctx.Param("id"))
 
 		if err != nil {
-			return ctx.JSON(400, helpers.Response("Please provide query `page` and `size` in number!"))
+			return ctx.JSON(400, helpers.Response("Param must be provided in number!"))
 		}
 
 		member, message := ctl.service.FindByID(memberID)
@@ -120,7 +120,7 @@ func (ctl *controller) DeleteMember() echo.HandlerFunc {
 		memberID, err := strconv.Atoi(ctx.Param("id"))
 
 		if err != nil {
-			return ctx.JSON(400, helpers.Response("Please provide query `page` and `size` in number!"))
+			return ctx.JSON(400, helpers.Response("Param must be provided in number!"))
 		}
 
 		member, message := ctl.service.FindByID(memberID)
