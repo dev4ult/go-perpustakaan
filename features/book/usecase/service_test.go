@@ -171,8 +171,8 @@ func TestModify(t *testing.T) {
 
 	var validBook = book.Book{
 		Title: "Dark Gathering",        
-		CoverImage: "",      
-		Summary: "Lorem Ipsum dolor sit amet.",         
+		CoverImage: "cloudinary-image-link.example",         
+		Summary: "Lorem Ipsum dolor sit amet.",     
 		PublicationYear: 2023, 
 		Quantity: 10,        
 		Language: "English",    
@@ -181,7 +181,8 @@ func TestModify(t *testing.T) {
 		PublisherID: 1, 
 	}
 
-	var invalidBook = book.Book{}
+	var invalidBook = book.Book{
+	}
 	
 	var inputBook = dtos.InputBook{
 		Title: "Dark Gathering",        
@@ -195,22 +196,26 @@ func TestModify(t *testing.T) {
 	}
 
 	var emptyInput = dtos.InputBook{}
+	var bookCover multipart.File = nil
+	var folderName = "book-cover"
 
 	var bookID = 1
 	t.Run("Success", func(t *testing.T) {
 		validBook.ID = bookID
+		helper.On("UploadImage", folderName, bookCover).Return("cloudinary-image-link.example", nil).Once()
 		repository.On("Update", validBook).Return(1, nil).Once()
 
-		result, message := service.Modify(inputBook, bookID)
+		result, message := service.Modify(inputBook, bookID, bookCover)
 		assert.Empty(t, message)
 		assert.Equal(t, true, result)
 		repository.AssertExpectations(t)
 	})
 
 	t.Run("Failed", func(t *testing.T) {
+		helper.On("UploadImage", folderName, bookCover).Return("", errors.New("no image uploaded")).Once()
 		repository.On("Update", invalidBook).Return(0, errors.New("record not found")).Once()
 
-		result, message := service.Modify(emptyInput, 0)
+		result, message := service.Modify(emptyInput, 0, bookCover)
 		assert.NotEmpty(t, message)
 		assert.Equal(t, false, result)
 		repository.AssertExpectations(t)
