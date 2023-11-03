@@ -9,6 +9,8 @@ import (
 
 	mock "github.com/stretchr/testify/mock"
 
+	multipart "mime/multipart"
+
 	snap "github.com/midtrans/midtrans-go/snap"
 )
 
@@ -112,27 +114,17 @@ func (_m *Helper) GetPrediction(comment string) string {
 }
 
 // UploadImage provides a mock function with given fields: folder, file
-func (_m *Helper) UploadImage(folder string, file interface{}) (string, error) {
+func (_m *Helper) UploadImage(folder string, file multipart.File) string {
 	ret := _m.Called(folder, file)
 
 	var r0 string
-	var r1 error
-	if rf, ok := ret.Get(0).(func(string, interface{}) (string, error)); ok {
-		return rf(folder, file)
-	}
-	if rf, ok := ret.Get(0).(func(string, interface{}) string); ok {
+	if rf, ok := ret.Get(0).(func(string, multipart.File) string); ok {
 		r0 = rf(folder, file)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 
-	if rf, ok := ret.Get(1).(func(string, interface{}) error); ok {
-		r1 = rf(folder, file)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
+	return r0
 }
 
 // VerifyHash provides a mock function with given fields: password, hashed
