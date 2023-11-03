@@ -1,12 +1,12 @@
 package dtos
 
 type InputFeedback struct {
-	MemberID *int `json:"user-id" form:"member-id"`
+	MemberID *int `json:"user_id" form:"member_id"`
 	Comment string `json:"comment" form:"comment" validate:"required"`
 }
 
 type InputReply struct {
-	StaffID int `json:"staff-id" form:"staff-id"`
+	StaffID int `json:"staff_id" form:"staff_id"`
 	Comment string `json:"comment" form:"comment" validate:"required"`
 }
 

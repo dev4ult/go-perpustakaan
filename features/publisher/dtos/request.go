@@ -5,8 +5,8 @@ type InputPublisher struct {
 	Country string `json:"country" form:"country" validate:"required"`
 	City string `json:"city" form:"city" validate:"required"`
 	Address string `json:"address" form:"address" validate:"required"`
-	PostalCode int `json:"postal-code" form:"postal-code" validate:"required"`
-	PhoneNumber string `json:"phone-number" form:"phone-number" validate:"required"`
+	PostalCode int `json:"postal_code" form:"postal_code" validate:"required"`
+	PhoneNumber string `json:"phone_number" form:"phone_number" validate:"required"`
 	Email string `json:"email" form:"email" validate:"required"`
 }
 

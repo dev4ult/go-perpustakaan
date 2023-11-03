@@ -1,13 +1,13 @@
 package dtos
 
 type ResLoanHistory struct {
-	StartToLoanAt string `json:"start-to-loan-at"`
-	DueDate	string `json:"due-date"`
+	StartToLoanAt string `json:"start_to_loan_at"`
+	DueDate	string `json:"due_date"`
 	Status string `json:"status"`
-	FullName string `json:"full-name"`
-	CredentialNumber string `json:"credential-number"`
+	FullName string `json:"full_name"`
+	CredentialNumber string `json:"credential_number"`
 	Title string `json:"title"`
-	CoverImage string `json:"cover-img"`
+	CoverImage string `json:"cover_img"`
 	Summary string `json:"summary"`
-	TransactionStatus string `json:"transaction-status"`
+	TransactionStatus string `json:"transaction_status"`
 }

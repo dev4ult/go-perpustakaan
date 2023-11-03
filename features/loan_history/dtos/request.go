@@ -1,11 +1,11 @@
 package dtos
 
 type InputLoanHistory struct {
-	StartToLoanAt 	string `json:"start-to-loan-at" form:"start-to-loan-at" validate:"required"`
-	DueDate			string `json:"due-date" form:"due-date" validate:"required"`
-	BookID     		int `json:"book-id" form:"book-id" validate:"required"`
-	MemberID   		int `json:"member-id" form:"member-id" validate:"required"`
-	FineTypeID 		int `json:"status-id" form:"status-id"`
+	StartToLoanAt 	string `json:"start_to_loan_at" form:"start_to_loan_at" validate:"required"`
+	DueDate			string `json:"due_date" form:"due_date" validate:"required"`
+	BookID     		int `json:"book_id" form:"book_id" validate:"required"`
+	MemberID   		int `json:"member_id" form:"member_id" validate:"required"`
+	FineTypeID 		int `json:"status_id" form:"status_id"`
 }
 
 type LoanStatus struct {

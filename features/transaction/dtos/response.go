@@ -2,10 +2,10 @@ package dtos
 
 type ResTransaction struct {
 	Note string `json:"note"`
-	OrderID string `json:"order-id"`
+	OrderID string `json:"order_id"`
 	Status string `json:"status"`
-	PaymentURL string `json:"payment-url"`
-	Fines []FineItem `json:"fine-item" gorm:"-"`
+	PaymentURL string `json:"payment_url"`
+	Fines []FineItem `json:"fine_item" gorm:"_"`
 }
 
 type FineItem struct {

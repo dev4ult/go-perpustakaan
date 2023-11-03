@@ -5,7 +5,7 @@ type ResPublisher struct {
 	Country string `json:"country"`
 	City string `json:"city"`
 	Address string `json:"address"`
-	PostalCode int `json:"postal-code"`
-	PhoneNumber string `json:"phone-number"`
+	PostalCode int `json:"postal_code"`
+	PhoneNumber string `json:"phone_number"`
 	Email string `json:"email"`
 }
