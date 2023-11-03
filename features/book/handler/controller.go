@@ -1,6 +1,8 @@
 package handler
 
 import (
+	"fmt"
+	"mime/multipart"
 	"perpustakaan/helpers"
 	"strconv"
 
@@ -76,12 +78,19 @@ func (ctl *controller) CreateBook() echo.HandlerFunc {
 	return func (ctx echo.Context) error  {
 		input := ctx.Get("request").(*dtos.InputBook)
 
-		formHeader, _ := ctx.FormFile("cover-img")
+		formHeader, err := ctx.FormFile("cover-img")
 
-		formFile, err := formHeader.Open()
-		if err != nil {
-			formFile = nil
+		var formFile multipart.File
+		if err == nil {
+			formFile, err = formHeader.Open()
+			
+			if err != nil {
+				formFile = nil
+			}
 		}
+
+		fmt.Println("In Controller, formFile type : ", formFile)
+
 
 		book, message := ctl.service.Create(*input, formFile)
 
@@ -112,11 +121,15 @@ func (ctl *controller) UpdateBook() echo.HandlerFunc {
 			return ctx.JSON(404, helpers.Response(message))
 		}
 
-		formHeader, _ := ctx.FormFile("cover-img")
+		formHeader, err := ctx.FormFile("cover-img")
 
-		formFile, err := formHeader.Open()
-		if err != nil {
-			formFile = nil
+		var formFile multipart.File
+		if err == nil {
+			formFile, err = formHeader.Open()
+			
+			if err != nil {
+				formFile = nil
+			}
 		}
 
 		update, errMessage := ctl.service.Modify(*input, bookID, formFile)

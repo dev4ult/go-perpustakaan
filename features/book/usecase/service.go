@@ -1,6 +1,7 @@
 package usecase
 
 import (
+	"fmt"
 	"mime/multipart"
 	"perpustakaan/features/book"
 	"perpustakaan/features/book/dtos"
@@ -42,23 +43,20 @@ func (svc *service) FindByID(bookID int) (*dtos.ResBook, string) {
 }
 
 func (svc *service) Create(newBook dtos.InputBook, bookCover multipart.File) (*dtos.AfterInsert, string) {
+	fmt.Println("In Service, formFile type : ", bookCover)
 	var book book.Book
 	
 	if err := smapping.FillStruct(&book, smapping.MapFields(newBook)); err != nil {
 		return nil, err.Error()
 	}
-
-	imageURL, err := svc.helper.UploadImage("book-cover", bookCover)
 	
-	if err != nil {
-		imageURL = ""
-	}
+	imageURL := svc.helper.UploadImage("book-cover", bookCover)
 
 	book.CoverImage = imageURL
-	bookID, errInsert := svc.model.Insert(book)
+	bookID, err := svc.model.Insert(book)
 
-	if errInsert != nil {
-		return nil, errInsert.Error()
+	if err != nil {
+		return nil, err.Error()
 	}
 
 	var resAfterInsert dtos.AfterInsert
@@ -79,17 +77,14 @@ func (svc *service) Modify(bookData dtos.InputBook, bookID int, bookCover multip
 		return false, err.Error()
 	}
 
-	imageURL, err := svc.helper.UploadImage("book-cover", bookCover)
-	
-	if err != nil {
-		imageURL = ""
-	}
+	imageURL := svc.helper.UploadImage("book-cover", bookCover)
+
 
 	newBook.CoverImage = imageURL
 	newBook.ID = bookID
-	_, errUpdate := svc.model.Update(newBook)
+	_, err := svc.model.Update(newBook)
 
-	if errUpdate != nil {
+	if err != nil {
 		return false, err.Error()
 	}
 	
