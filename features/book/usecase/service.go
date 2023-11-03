@@ -50,7 +50,7 @@ func (svc *service) Create(newBook dtos.InputBook, bookCover multipart.File) (*d
 		return nil, err.Error()
 	}
 	
-	imageURL := svc.helper.UploadImage("book-cover", bookCover)
+	imageURL := svc.helper.UploadImage("book_cover", bookCover)
 
 	book.CoverImage = imageURL
 	bookID, err := svc.model.Insert(book)
@@ -77,7 +77,7 @@ func (svc *service) Modify(bookData dtos.InputBook, bookID int, bookCover multip
 		return false, err.Error()
 	}
 
-	imageURL := svc.helper.UploadImage("book-cover", bookCover)
+	imageURL := svc.helper.UploadImage("book_cover", bookCover)
 
 
 	newBook.CoverImage = imageURL
