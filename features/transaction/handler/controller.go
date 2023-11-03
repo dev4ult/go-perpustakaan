@@ -34,7 +34,8 @@ func (ctl *controller) GetTransactions() echo.HandlerFunc {
 		size := pagination.Size
 
 		if page <= 0 || size <= 0 {
-			return ctx.JSON(400, helper.Response("Param must be provided in number!"))
+			page = 1
+			size = 10
 		}
 
 		transactions, message := ctl.service.FindAll(page, size)
