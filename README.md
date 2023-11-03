@@ -2,7 +2,7 @@
 
 ### ERD
 
-![image](https://raw.githubusercontent.com/dev4ult/go-perpustakaan/main/ERD.png)
+![image](https://raw.githubusercontent.com/dev4ult/go-perpustakaan/main/erd-perpus.png)
 
 ### Link ERD
 
