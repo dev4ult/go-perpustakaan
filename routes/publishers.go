@@ -13,9 +13,9 @@ func Publishers(e *echo.Echo, handler publisher.Handler) {
 	publishers.Use(m.Authorization("librarian"))
 
 	publishers.GET("", handler.GetPublishers())
-	publishers.POST("", handler.CreatePublisher(), m.RequestValidation(&dtos.InputPublisher{}))
+	publishers.POST("", handler.CreatePublisher(), m.RequestValidation(dtos.InputPublisher{}))
 	
 	publishers.GET("/:id", handler.PublisherDetails())
-	publishers.PUT("/:id", handler.UpdatePublisher(), m.RequestValidation(&dtos.InputPublisher{}))
+	publishers.PUT("/:id", handler.UpdatePublisher(), m.RequestValidation(dtos.InputPublisher{}))
 	publishers.DELETE("/:id", handler.DeletePublisher())
 }
