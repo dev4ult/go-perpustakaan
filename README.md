@@ -37,7 +37,7 @@ Produk ini dirancang untuk membantu perpustakaan mengelola koleksi buku dan dend
 
 ## Link Postman
 
-[Spesifikasi API]([https://drive.google.com/file/d/1M0CmRtvHxHL8n_F-UI5744gluo1_gdid/view?usp=sharing](https://www.postman.com/supply-meteorologist-18630877/workspace/go-library))
+[Spesifikasi API](https://www.postman.com/supply-meteorologist-18630877/workspace/go-library)
 
 ## ERD
 
