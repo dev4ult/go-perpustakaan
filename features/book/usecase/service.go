@@ -72,17 +72,24 @@ func (svc *service) Create(newBook dtos.InputBook, bookCover multipart.File) (*d
 	return &resAfterInsert, ""
 }
 
-func (svc *service) Modify(bookData dtos.InputBook, bookID int) (bool, string) {
+func (svc *service) Modify(bookData dtos.InputBook, bookID int, bookCover multipart.File) (bool, string) {
 	var newBook book.Book
 	
 	if err := smapping.FillStruct(&newBook, smapping.MapFields(bookData)); err != nil {
 		return false, err.Error()
 	}
 
-	newBook.ID = bookID
-	_, err := svc.model.Update(newBook)
-
+	imageURL, err := svc.helper.UploadImage("book-cover", bookCover)
+	
 	if err != nil {
+		imageURL = ""
+	}
+
+	newBook.CoverImage = imageURL
+	newBook.ID = bookID
+	_, errUpdate := svc.model.Update(newBook)
+
+	if errUpdate != nil {
 		return false, err.Error()
 	}
 	

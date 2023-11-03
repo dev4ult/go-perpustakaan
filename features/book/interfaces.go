@@ -19,7 +19,7 @@ type Usecase interface {
 	FindAll(page int, size int, searchKey string) ([]dtos.ResBook, string)
 	FindByID(bookID int) (*dtos.ResBook, string)
 	Create(newBook dtos.InputBook, bookCover multipart.File) (*dtos.AfterInsert, string)
-	Modify(bookData dtos.InputBook, bookID int) (bool, string)
+	Modify(bookData dtos.InputBook, bookID int, bookCover multipart.File) (bool, string)
 	Remove(bookID int) (bool, string)
 }
 

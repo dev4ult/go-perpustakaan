@@ -76,14 +76,11 @@ func (ctl *controller) CreateBook() echo.HandlerFunc {
 	return func (ctx echo.Context) error  {
 		input := ctx.Get("request").(*dtos.InputBook)
 
-		formHeader, err := ctx.FormFile("cover-img")
-		if err != nil {
-			return ctx.JSON(400, helpers.Response("Missing Cover Image as `cover-img` (Required!)"))
-		}
+		formHeader, _ := ctx.FormFile("cover-img")
 
 		formFile, err := formHeader.Open()
 		if err != nil {
-			return ctx.JSON(500, helpers.Response(err.Error()))
+			formFile = nil
 		}
 
 		book, message := ctl.service.Create(*input, formFile)
@@ -114,9 +111,15 @@ func (ctl *controller) UpdateBook() echo.HandlerFunc {
 		if book == nil {
 			return ctx.JSON(404, helpers.Response(message))
 		}
-		
 
-		update, errMessage := ctl.service.Modify(*input, bookID)
+		formHeader, _ := ctx.FormFile("cover-img")
+
+		formFile, err := formHeader.Open()
+		if err != nil {
+			formFile = nil
+		}
+
+		update, errMessage := ctl.service.Modify(*input, bookID, formFile)
 
 		if !update {
 			return ctx.JSON(500, helpers.Response(errMessage))
