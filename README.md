@@ -5,11 +5,13 @@ Produk ini dirancang untuk membantu perpustakaan mengelola koleksi buku dan dend
 ## Spesifikasi / Fitur
 
 ### [ Guest User ]
+
 - Melihat / Mencari List dan Detail Buku
 - Melihat / Mencari List dan Detail Feedback
 - Memberikan Feedback sebagai Anonymous
 
 ### [ Member ]
+
 - Melihat / Mencari List dan Detail Buku
 - Meminjam Buku melalui **Librarian / Staff**
 - Membayar Denda Keterlambatan / Kerusakan / Kehilangan
@@ -17,6 +19,7 @@ Produk ini dirancang untuk membantu perpustakaan mengelola koleksi buku dan dend
 - Memberikan Feedback
 
 ### [ Librarian / Staff ]
+
 - Melihat, Mencari, Menambah, Menghapus, Mengubah Data Buku
 - Melihat, Mencari, Menambah, Menghapus, Mengubah Data Penerbit
 - Melihat, Mencari, Menambah, Menghapus, Mengubah Data Penulis dan hubungannya dengan Buku (Authorship)
@@ -26,6 +29,7 @@ Produk ini dirancang untuk membantu perpustakaan mengelola koleksi buku dan dend
 - Menghapus Feedback
 
 ## Teknologi
+
 - Framework: **Echo**
 - ORM: **GORM**
 - Database: **MySQL/MariaDB**
@@ -37,7 +41,7 @@ Produk ini dirancang untuk membantu perpustakaan mengelola koleksi buku dan dend
 
 ## Link Postman
 
-[Spesifikasi API](https://www.postman.com/supply-meteorologist-18630877/workspace/go-library)
+[Spesifikasi API](https://documenter.getpostman.com/view/28340333/2s9YsJBXiG)
 
 ## ERD
 
